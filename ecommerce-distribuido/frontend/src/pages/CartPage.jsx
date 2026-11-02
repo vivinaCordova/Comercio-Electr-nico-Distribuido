@@ -1,0 +1,1 @@
+export default function CartPage(){return <section className="panel"><h1>Carrito</h1><p>La administración de artículos del carrito se implementará posteriormente.</p><span className="tag">Estructura preparada</span></section>}

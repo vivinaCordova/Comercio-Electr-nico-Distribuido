@@ -1,0 +1,14 @@
+# Secretos locales
+.env
+.env.*
+!.env.example
+# Java
+**/target/
+# Frontend
+**/node_modules/
+**/dist/
+# Herramientas
+.idea/
+.vscode/
+*.log
+__pycache__/

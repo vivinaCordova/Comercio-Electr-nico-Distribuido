@@ -1,0 +1,20 @@
+server:
+  port: 8083
+spring:
+  application:
+    name: ms-carrito
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:5432/carrito_db
+    username: ${POSTGRES_USER:ecommerce}
+    password: ${POSTGRES_PASSWORD:change_me_local_only}
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+  flyway:
+    enabled: false
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
