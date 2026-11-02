@@ -1,0 +1,25 @@
+server:
+  port: 8082
+spring:
+  application:
+    name: ms-ordenes
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:5432/ordenes_db
+    username: ${POSTGRES_USER:ecommerce}
+    password: ${POSTGRES_PASSWORD:change_me_local_only}
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+  flyway:
+    enabled: false
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: 5672
+    username: ${RABBITMQ_USER:ecommerce}
+    password: ${RABBITMQ_PASSWORD:change_me_rabbit}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

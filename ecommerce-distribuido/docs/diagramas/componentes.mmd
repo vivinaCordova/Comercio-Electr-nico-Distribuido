@@ -1,0 +1,14 @@
+flowchart LR
+  UI[React Vite] --> GW[API Gateway]
+  GW --> C[Catálogo]
+  GW --> O[Órdenes]
+  GW --> K[Carrito]
+  GW --> N[Notificaciones]
+  C --> PC[(PostgreSQL catálogo)]
+  O --> PO[(PostgreSQL órdenes)]
+  K --> PK[(PostgreSQL carrito)]
+  N --> PN[(PostgreSQL notificaciones)]
+  C <--> MQ[RabbitMQ]
+  O <--> MQ
+  N <--> MQ
+  N --> MH[MailHog]

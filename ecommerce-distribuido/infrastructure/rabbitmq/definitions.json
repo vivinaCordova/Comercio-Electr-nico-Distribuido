@@ -1,0 +1,81 @@
+{
+  "users": [],
+  "vhosts": [],
+  "permissions": [],
+  "exchanges": [
+    {
+      "name": "ecommerce.events",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "catalogo.orden-creada",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "ordenes.stock-eventos",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "notificaciones.stock-eventos",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "ecommerce.events",
+      "vhost": "/",
+      "destination": "catalogo.orden-creada",
+      "destination_type": "queue",
+      "routing_key": "orden.creada",
+      "arguments": {}
+    },
+    {
+      "source": "ecommerce.events",
+      "vhost": "/",
+      "destination": "ordenes.stock-eventos",
+      "destination_type": "queue",
+      "routing_key": "stock.descontado",
+      "arguments": {}
+    },
+    {
+      "source": "ecommerce.events",
+      "vhost": "/",
+      "destination": "ordenes.stock-eventos",
+      "destination_type": "queue",
+      "routing_key": "stock.insuficiente",
+      "arguments": {}
+    },
+    {
+      "source": "ecommerce.events",
+      "vhost": "/",
+      "destination": "notificaciones.stock-eventos",
+      "destination_type": "queue",
+      "routing_key": "stock.descontado",
+      "arguments": {}
+    },
+    {
+      "source": "ecommerce.events",
+      "vhost": "/",
+      "destination": "notificaciones.stock-eventos",
+      "destination_type": "queue",
+      "routing_key": "stock.insuficiente",
+      "arguments": {}
+    }
+  ]
+}

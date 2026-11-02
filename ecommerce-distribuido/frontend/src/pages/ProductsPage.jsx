@@ -1,0 +1,1 @@
+export default function ProductsPage(){return <section className="panel"><h1>Productos</h1><p>El catálogo y las operaciones CRUD se incorporarán en la siguiente fase.</p><span className="tag">Estructura preparada</span></section>}
