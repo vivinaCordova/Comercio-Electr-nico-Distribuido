@@ -9,9 +9,9 @@ import com.ecommerce.ordenes.service.OrdenService;
  @RabbitListener(queues="ordenes.stock-eventos")
  public void recibir(EventMessage evento) {
   if ("stock.descontado".equals(evento.tipo())) {
-   ordenService.actualizarEstado(Long.valueOf(evento.ordenId()), EstadoOrden.CONFIRMADA);
+   ordenService.actualizarEstado(Long.valueOf(evento.ordenId()), EstadoOrden.CONFIRMADA, null);
   } else if ("stock.insuficiente".equals(evento.tipo())) {
-   ordenService.actualizarEstado(Long.valueOf(evento.ordenId()), EstadoOrden.CANCELADA);
+   ordenService.actualizarEstado(Long.valueOf(evento.ordenId()), EstadoOrden.CANCELADA, evento.detalle());
   }
  }
 }

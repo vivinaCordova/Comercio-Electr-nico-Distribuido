@@ -9,6 +9,7 @@ import org.mockito.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 import static org.mockito.Mockito.verify;
 
@@ -23,16 +24,16 @@ class EventConsumerTest {
         consumer.recibir(new EventMessage("stock.descontado", "7", 10L,
                 new BigDecimal("39.98"), Instant.now()));
 
-        verify(ordenService).actualizarEstado(7L, EstadoOrden.CONFIRMADA);
+        verify(ordenService).actualizarEstado(7L, EstadoOrden.CONFIRMADA, null);
     }
 
     @Test
-    void stockInsuficienteCancelaOrden() {
+    void stockInsuficienteCancelaOrdenConMotivo() {
         EventConsumer consumer = new EventConsumer(ordenService);
 
         consumer.recibir(new EventMessage("stock.insuficiente", "8", 10L,
-                new BigDecimal("39.98"), Instant.now()));
+                new BigDecimal("39.98"), Instant.now(), List.of(), "Stock insuficiente"));
 
-        verify(ordenService).actualizarEstado(8L, EstadoOrden.CANCELADA);
+        verify(ordenService).actualizarEstado(8L, EstadoOrden.CANCELADA, "Stock insuficiente");
     }
 }

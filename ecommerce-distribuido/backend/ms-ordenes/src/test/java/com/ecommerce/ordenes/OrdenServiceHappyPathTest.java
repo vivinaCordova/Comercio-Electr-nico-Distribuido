@@ -47,4 +47,24 @@ class OrdenServiceHappyPathTest {
         verify(repository).save(any(Orden.class));
         verify(eventPublisher).publicar(eq("orden.creada"), any());
     }
+
+    @Test
+    void promoSell12DescuentaDoceporcientoEnElServidor() throws Exception {
+        when(catalogoClient.validar(eq(1L), any())).thenReturn(
+                new CatalogoValidationResponse(true, new BigDecimal("100.00"), "ok"));
+        when(repository.save(any(Orden.class))).thenAnswer(invocation -> {
+            Orden orden = invocation.getArgument(0);
+            Field id = Orden.class.getDeclaredField("id");
+            id.setAccessible(true);
+            id.set(orden, 8L);
+            return orden;
+        });
+
+        OrdenResponse response = new OrdenService(repository, catalogoClient, eventPublisher)
+                .crear(new CrearOrdenRequest(10L,
+                        List.of(new OrdenItemRequest(1L, 1, new BigDecimal("100.00"))), "sell12"));
+
+        assertEquals(new BigDecimal("12.00"), response.descuento());
+        assertEquals(new BigDecimal("88.00"), response.total());
+    }
 }
