@@ -2,6 +2,7 @@ package com.ecommerce.catalogo.service;
 
 import com.ecommerce.catalogo.dto.PageResponse;
 import com.ecommerce.catalogo.dto.ProductoCreateRequest;
+import com.ecommerce.catalogo.dto.ProductoDetalleResponse;
 import com.ecommerce.catalogo.dto.ProductoResponse;
 import com.ecommerce.catalogo.dto.ProductoUpdateRequest;
 import com.ecommerce.catalogo.entity.Producto;
@@ -9,6 +10,7 @@ import com.ecommerce.catalogo.exception.ProductoNotFoundException;
 import com.ecommerce.catalogo.exception.SkuDuplicadoException;
 import com.ecommerce.catalogo.exception.SolicitudInvalidaException;
 import com.ecommerce.catalogo.repository.ProductoRepository;
+import com.ecommerce.catalogo.repository.ProductoImagenRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,10 +31,13 @@ public class ProductoService {
 
     private final ProductoRepository productoRepository;
     private final CategoriaService categoriaService;
+    private final ProductoImagenRepository imagenRepository;
 
-    public ProductoService(ProductoRepository productoRepository, CategoriaService categoriaService) {
+    public ProductoService(ProductoRepository productoRepository, CategoriaService categoriaService,
+                           ProductoImagenRepository imagenRepository) {
         this.productoRepository = productoRepository;
         this.categoriaService = categoriaService;
+        this.imagenRepository = imagenRepository;
     }
 
     @Transactional
@@ -49,6 +54,22 @@ public class ProductoService {
 
     public ProductoResponse obtenerPorId(Long id) {
         return ProductoMapper.toResponse(buscarOFallar(id));
+    }
+
+    public ProductoDetalleResponse obtenerDetalle(Long id) {
+        Producto producto = buscarOFallar(id);
+        return new ProductoDetalleResponse(
+                producto.getId(), producto.getNombre(), producto.getDescripcion(),
+                producto.getPesoGramos(), producto.getEspecificaciones(), producto.getPrecio(),
+                producto.getStock(), producto.getSku(), producto.getActivo(),
+                producto.getFechaCreacion(), producto.getFechaActualizacion(),
+                producto.getCategoria() == null ? null : com.ecommerce.catalogo.dto.CategoriaResponse.de(producto.getCategoria()),
+                imagenRepository.findByProductoIdOrderByOrdenAsc(id).stream()
+                        .map(imagen -> new com.ecommerce.catalogo.dto.ProductoImagenResponse(
+                                imagen.getId(), id,
+                                "/api/catalogo/productos/" + id + "/imagenes/" + imagen.getId() + "/archivo",
+                                imagen.getEsPrincipal(), imagen.getOrden()))
+                        .toList());
     }
 
     public PageResponse<ProductoResponse> listar(int pagina, int tamanio, String ordenarPor, String direccion) {

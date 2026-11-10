@@ -3,6 +3,7 @@ package com.ecommerce.catalogo.controller;
 import com.ecommerce.catalogo.dto.PageResponse;
 import com.ecommerce.catalogo.dto.ProductoCreateRequest;
 import com.ecommerce.catalogo.dto.ProductoResponse;
+import com.ecommerce.catalogo.dto.ProductoDetalleResponse;
 import com.ecommerce.catalogo.dto.ProductoUpdateRequest;
 import com.ecommerce.catalogo.service.ProductoService;
 import jakarta.validation.Valid;
@@ -71,8 +72,13 @@ public class ProductoController {
     }
 
     @GetMapping("/{id}")
-    public ProductoResponse obtener(@PathVariable("id") Long id) {
-        return productoService.obtenerPorId(id);
+    public ProductoDetalleResponse obtener(@PathVariable("id") Long id) {
+        return productoService.obtenerDetalle(id);
+    }
+
+    @GetMapping("/{id}/detalle")
+    public ProductoDetalleResponse detalle(@PathVariable("id") Long id) {
+        return productoService.obtenerDetalle(id);
     }
 
     @PutMapping("/{id}")

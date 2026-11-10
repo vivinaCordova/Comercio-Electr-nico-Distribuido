@@ -40,6 +40,13 @@ public class Producto {
     @Column(length = 1000)
     private String descripcion;
 
+    @Min(1)
+    @Column(name = "peso_gramos")
+    private Integer pesoGramos;
+
+    @Column(columnDefinition = "TEXT")
+    private String especificaciones;
+
     @NotNull
     @DecimalMin(value = "0.00", inclusive = false)
     @Digits(integer = 10, fraction = 2)
@@ -106,6 +113,22 @@ public class Producto {
 
     public void setDescripcion(String descripcion) {
         this.descripcion = descripcion;
+    }
+
+    public Integer getPesoGramos() {
+        return pesoGramos;
+    }
+
+    public void setPesoGramos(Integer pesoGramos) {
+        this.pesoGramos = pesoGramos;
+    }
+
+    public String getEspecificaciones() {
+        return especificaciones;
+    }
+
+    public void setEspecificaciones(String especificaciones) {
+        this.especificaciones = especificaciones;
     }
 
     public BigDecimal getPrecio() {

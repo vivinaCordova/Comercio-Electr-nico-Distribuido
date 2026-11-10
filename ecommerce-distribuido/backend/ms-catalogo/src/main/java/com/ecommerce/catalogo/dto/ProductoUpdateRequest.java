@@ -17,6 +17,11 @@ public record ProductoUpdateRequest(
         @Size(max = 1000, message = "La descripción no puede superar 1000 caracteres")
         String descripcion,
 
+        @Min(value = 1, message = "El peso debe ser mayor que cero")
+        Integer pesoGramos,
+
+        String especificaciones,
+
         @NotNull(message = "El precio es obligatorio")
         @DecimalMin(value = "0.00", inclusive = false, message = "El precio debe ser mayor que cero")
         @Digits(integer = 10, fraction = 2, message = "El precio admite como máximo 2 decimales")

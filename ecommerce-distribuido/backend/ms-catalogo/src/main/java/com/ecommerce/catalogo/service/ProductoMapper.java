@@ -15,6 +15,8 @@ final class ProductoMapper {
         Producto producto = new Producto();
         producto.setNombre(request.nombre().trim());
         producto.setDescripcion(request.descripcion());
+        producto.setPesoGramos(request.pesoGramos());
+        producto.setEspecificaciones(request.especificaciones());
         producto.setPrecio(request.precio());
         producto.setStock(request.stock());
         producto.setSku(skuNormalizado);
@@ -25,6 +27,8 @@ final class ProductoMapper {
     static void aplicarActualizacion(Producto producto, ProductoUpdateRequest request, String skuNormalizado) {
         producto.setNombre(request.nombre().trim());
         producto.setDescripcion(request.descripcion());
+        producto.setPesoGramos(request.pesoGramos());
+        producto.setEspecificaciones(request.especificaciones());
         producto.setPrecio(request.precio());
         producto.setStock(request.stock());
         producto.setSku(skuNormalizado);
@@ -38,6 +42,8 @@ final class ProductoMapper {
                 producto.getId(),
                 producto.getNombre(),
                 producto.getDescripcion(),
+                producto.getPesoGramos(),
+                producto.getEspecificaciones(),
                 producto.getPrecio(),
                 producto.getStock(),
                 producto.getSku(),

@@ -7,6 +7,8 @@ public record ProductoResponse(
         Long id,
         String nombre,
         String descripcion,
+        Integer pesoGramos,
+        String especificaciones,
         BigDecimal precio,
         Integer stock,
         String sku,
