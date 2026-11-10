@@ -82,7 +82,16 @@ export default function ProductDetailPage() {
             {confirmado && <p className="order-message success">Producto agregado. <Link to="/carrito">Ver carrito ({cantidadTotal})</Link></p>}
           </section>
         </div>
-        <section className="product-extra"><h2>Descripción y especificaciones</h2><p>{producto.descripcion || 'Sin descripción adicional.'}</p><table><tbody><tr><th>Peso</th><td>{producto.pesoGramos ? `${producto.pesoGramos} g` : 'No especificado'}</td></tr><tr><th>Especificaciones</th><td>{producto.especificaciones || 'No especificadas'}</td></tr><tr><th>SKU</th><td>{producto.sku || 'No especificado'}</td></tr></tbody></table></section>
+        {producto.descripcion && <section className="product-extra"><h2>Descripción</h2><p>{producto.descripcion}</p></section>}
+        {(producto.pesoGramos || producto.especificaciones) && (
+          <section className="product-extra">
+            <h2>Características</h2>
+            <table><tbody>
+              {producto.pesoGramos && <tr><th>Peso</th><td>{producto.pesoGramos >= 1000 ? `${(producto.pesoGramos / 1000).toFixed(2)} kg` : `${producto.pesoGramos} g`}</td></tr>}
+              {producto.especificaciones && <tr><th>Especificaciones</th><td>{producto.especificaciones}</td></tr>}
+            </tbody></table>
+          </section>
+        )}
         {relacionados.length > 0 && <section className="related-products"><h2>También te puede interesar</h2><div className="product-grid">{relacionados.map((p) => <TarjetaProducto key={p.id} producto={p} onAgregar={agregar} />)}</div></section>}
       </main>
     </div>

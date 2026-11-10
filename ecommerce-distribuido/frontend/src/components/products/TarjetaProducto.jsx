@@ -29,7 +29,8 @@ export default function TarjetaProducto({ producto, onAgregar, mostrarAgregar = 
         <h2>{nombre}</h2>
       </Link>
       <small className="categoria-label">{categoria?.nombre || 'Producto'}</small>
-      <small className={stock > 0 ? 'stock-card' : 'stock-card agotado'}>{stock > 0 ? `Quedan ${stock}` : 'Sin stock'}</small>
+      {stock < 1 && <small className="stock-card agotado">Sin stock</small>}
+      {stock > 0 && stock <= 5 && <small className="stock-card">Quedan {stock}</small>}
       <div className="product-footer">
         <strong>{formatoMoneda(aCentavos(precio))}</strong>
         {mostrarAgregar && (

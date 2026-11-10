@@ -11,7 +11,6 @@ export default function Hero({ productos }) {
   return (
     <section className="hero">
       <div className="hero-texto">
-        <span className="hero-etiqueta">Tienda en línea · UNL</span>
         <h1>Electrónica, moda, hogar y más en un solo lugar</h1>
         <p>Explora todas las categorías y compra con tu cuenta. Tu orden se confirma solo si hay stock disponible al procesarla.</p>
         <div className="hero-cta">
