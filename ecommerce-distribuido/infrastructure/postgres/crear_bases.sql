@@ -2,4 +2,5 @@
 CREATE DATABASE catalogo_db OWNER ecommerce;
 CREATE DATABASE ordenes_db OWNER ecommerce;
 CREATE DATABASE carrito_db OWNER ecommerce;
+CREATE DATABASE usuarios_db OWNER ecommerce;
 CREATE DATABASE notificaciones_db OWNER ecommerce;
