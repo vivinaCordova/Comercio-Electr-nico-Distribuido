@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 # Carga el catálogo de demostración (categorías y productos con imagen) a través del API Gateway.
 #
-# - Idempotente: los SKU que ya existen se omiten; si un producto existe sin imagen, se le sube una.
+# - Idempotente: los SKU que ya existen se actualizan, sin duplicar productos.
 # - No usa credenciales ni tokens: los endpoints de catálogo son públicos vía Gateway.
-# - Cada imagen se descarga de una fuente libre y se valida (JPEG/PNG real, no HTML).
-#   Si no hay red o la descarga falla, se genera una imagen de respaldo con ImageMagick.
+# - Las imágenes se leen de imagenes/<SKU> y se validan; si no existen, se genera un respaldo limpio.
 #
 # Uso: ./cargar-productos.sh [url_gateway] [--reimagenes]
 set -euo pipefail
@@ -31,9 +30,24 @@ done
 IM="$(command -v magick || command -v convert || true)"
 [ -n "$IM" ] || echo "Aviso: no hay ImageMagick; las imágenes que no se descarguen quedarán sin foto." >&2
 
-# Catálogo de demostración: CATEGORIA_SLUG|SKU|NOMBRE|DESCRIPCION|PRECIO|PALABRA_CLAVE_FOTO|PESO|ESPECIFICACIONES
-# Los productos de Electrónica que ya existían (IPH-*, SAM-*, etc.) no se repiten: el script los respeta.
+# Catálogo: CATEGORIA_SLUG|SKU|NOMBRE|DESCRIPCION|PRECIO|ICONO|PESO|ESPECIFICACIONES
+# Las fichas se actualizan tanto al crear como al encontrar el SKU existente.
 PRODUCTOS=$(cat <<'DATOS'
+electronica|IPH-17PRO|iPhone 17 Pro|Teléfono de alto rendimiento con pantalla brillante y cámara avanzada. Ideal para fotografía, trabajo y entretenimiento.|1199.00|telefono|187|Pantalla: 6.3 pulgadas;Almacenamiento: 256 GB;Batería: hasta 27 horas;Cámara: triple 48 MP
+electronica|VIVO-X300|vivo X300 5G|Teléfono con conectividad 5G y cámara de alta resolución. Su diseño está pensado para productividad y entretenimiento.|780.00|telefono|190|Pantalla: 6.78 pulgadas;Almacenamiento: 256 GB;Batería: 5000 mAh;Cámara: 50 MP
+electronica|SAM-S25U|Samsung Galaxy S25 Ultra|Teléfono premium con pantalla amplia y herramientas inteligentes. Su cámara versátil facilita fotos nítidas en cualquier momento.|1250.00|telefono|218|Pantalla: 6.9 pulgadas;Almacenamiento: 512 GB;Batería: 5000 mAh;Cámara: 200 MP
+electronica|IPH-17|iPhone 17|Teléfono compacto con pantalla brillante y rendimiento fluido. Es adecuado para comunicación, fotografía y aplicaciones diarias.|780.00|telefono|177|Pantalla: 6.3 pulgadas;Almacenamiento: 256 GB;Batería: hasta 24 horas;Cámara: doble 48 MP
+electronica|IPH-AIR|iPhone Air|Teléfono delgado y ligero con pantalla de alta resolución. Su batería y cámara acompañan el uso cotidiano.|890.00|telefono|165|Pantalla: 6.5 pulgadas;Almacenamiento: 256 GB;Batería: hasta 26 horas;Cámara: 48 MP
+electronica|ONEP-13|OnePlus 13|Teléfono rápido con pantalla fluida y carga eficiente. Ofrece una experiencia equilibrada para juegos y trabajo.|750.00|telefono|210|Pantalla: 6.82 pulgadas;Almacenamiento: 256 GB;Batería: 6000 mAh;Cámara: triple 50 MP
+electronica|PIX-9|Google Pixel 9|Teléfono con fotografía computacional y Android actualizado. Su formato compacto facilita el uso cotidiano.|690.00|telefono|198|Pantalla: 6.3 pulgadas;Almacenamiento: 128 GB;Batería: 4700 mAh;Cámara: doble 50 MP
+electronica|RED-N14|Redmi Note 14|Teléfono accesible con pantalla amplia y batería duradera. Está diseñado para navegación, redes y multimedia.|420.00|telefono|196|Pantalla: 6.67 pulgadas;Almacenamiento: 256 GB;Batería: 5500 mAh;Cámara: 108 MP
+electronica|SAM-S25ULTRA|Samsung Galaxy S25 Ultra|Teléfono premium con pantalla amplia y herramientas inteligentes. Su cámara versátil facilita fotos nítidas en cualquier momento.|1299.00|telefono|218|Pantalla: 6.9 pulgadas;Almacenamiento: 512 GB;Batería: 5000 mAh;Cámara: 200 MP
+electronica|XIA-14T|Xiaomi 14T|Teléfono equilibrado para fotografía, productividad y uso diario. Ofrece buen rendimiento con carga rápida.|549.00|telefono|193|Pantalla: 6.67 pulgadas;Almacenamiento: 256 GB;Batería: 5000 mAh;Cámara: triple 50 MP
+electronica|MOT-EDGE50|Motorola Edge 50|Teléfono delgado con pantalla fluida y cámara estabilizada. Su batería está pensada para una jornada completa.|399.00|telefono|180|Pantalla: 6.7 pulgadas;Almacenamiento: 256 GB;Batería: 5000 mAh;Cámara: 50 MP
+electronica|HON-MAGIC6|Honor Magic 6|Teléfono moderno con pantalla de alta resolución y autonomía prolongada. Es una opción cómoda para trabajo y multimedia.|699.00|telefono|199|Pantalla: 6.8 pulgadas;Almacenamiento: 512 GB;Batería: 5600 mAh;Cámara: 50 MP
+electronica|OPP-RENO12|OPPO Reno 12|Teléfono liviano con cámara de retrato y carga rápida. Su diseño combina comodidad y buen desempeño.|449.00|telefono|179|Pantalla: 6.7 pulgadas;Almacenamiento: 256 GB;Batería: 5000 mAh;Cámara: 50 MP
+electronica|ZTE-AXON|ZTE Axon|Teléfono con audio envolvente y pantalla de gran tamaño. Está preparado para navegación, fotos y entretenimiento.|499.00|telefono|197|Pantalla: 6.8 pulgadas;Almacenamiento: 256 GB;Batería: 5000 mAh;Cámara: 64 MP
+electronica|GOO-PIXEL9|Google Pixel 9|Teléfono con fotografía computacional y Android actualizado. Su formato compacto facilita el uso cotidiano.|799.00|telefono|198|Pantalla: 6.3 pulgadas;Almacenamiento: 128 GB;Batería: 4700 mAh;Cámara: doble 50 MP
 electronica|ELE-LAP-VIVO15|Laptop ASUS Vivobook 15|Portátil con procesador Ryzen 7, 16 GB de RAM y SSD de 512 GB.|699.00|laptop|1000|Producto de calidad con materiales seleccionados y garantía de origen.
 electronica|ELE-LAP-MBA13|MacBook Air 13 M3|Ultraligera con chip M3 y batería de hasta 18 horas.|1099.00|macbook|1000|Producto de calidad con materiales seleccionados y garantía de origen.
 electronica|ELE-AUD-WH1000|Audífonos Sony WH-1000XM5|Cancelación de ruido líder en su clase y 30 horas de batería.|349.00|headphones|1000|Producto de calidad con materiales seleccionados y garantía de origen.
@@ -77,27 +91,36 @@ automotriz|AUT-CAMARA|Cámara de retroceso HD|Cámara con visión nocturna para 
 DATOS
 )
 
-# Descarga una foto por palabra clave y verifica que sea JPEG o PNG real de más de 10 KB.
-descargar_foto() { # $1 palabra clave, $2 destino
-  local bloqueo
-  bloqueo="$(printf '%s' "$1" | cksum | cut -d' ' -f1)"
-  curl -fsL --max-time 25 -o "$2" "https://loremflickr.com/800/800/$1?lock=$bloqueo" 2>/dev/null || { rm -f "$2"; return 1; }
+# Usa una imagen local únicamente si su contenido corresponde a una imagen real.
+imagen_local() { # $1 SKU, $2 destino
+  local origen extension tipo
+  for extension in jpg jpeg png webp; do
+    origen="$(dirname "$0")/imagenes/$1.$extension"
+    [ -f "$origen" ] || continue
+    tipo="$(file -b --mime-type "$origen")"
+    case "$tipo" in image/jpeg|image/png|image/webp) cp "$origen" "$2"; return 0 ;; esac
+    echo "  imagen local rechazada para $1: tipo $tipo" >&2
+  done
+  return 1
+}
+
+# Conserva la validación para cualquier archivo local.
+validar_imagen() {
   case "$(file -b --mime-type "$2")" in
-    image/jpeg|image/png) [ "$(stat -c '%s' "$2")" -gt 10240 ] && return 0 ;;
+    image/jpeg|image/png|image/webp) [ "$(stat -c '%s' "$2")" -gt 10240 ] && return 0 ;;
   esac
   rm -f "$2"
   return 1
 }
 
-# Imagen de respaldo: degradado naranja con el nombre del producto
+# Respaldo claro con icono textual de categoría y nombre legible.
 generar_respaldo() { # $1 nombre, $2 categoría, $3 destino
   [ -n "$IM" ] || return 1
-  "$IM" -size 800x800 gradient:'#ffc27a-#ff7a1a' \
-    \( -background none -font "$FUENTE" -fill white -pointsize 52 -gravity center -size 680x caption:"$1" \) \
-    -gravity center -composite \
-    -gravity south -font "$FUENTE" -fill '#ffffffdd' -pointsize 28 -annotate +0+50 "$2" \
+  "$IM" -size 800x800 xc:'#fffaf5' -fill '#ff7a1a' -draw 'circle 400,190 400,110' \
+    -font "$FUENTE" -pointsize 42 -gravity center -annotate +0+80 "$2" \
+    -fill '#333333' -pointsize 38 -annotate +0+180 "$1" \
     -strip -quality 90 "$3"
-  [ "$(stat -c '%s' "$3")" -gt 10240 ]
+  [ -f "$3" ] && [ "$(stat -c '%s' "$3")" -gt 10240 ]
 }
 
 # Sube la imagen a un producto y devuelve el código HTTP
@@ -122,6 +145,22 @@ done
 
 creados=0; existentes=0; con_foto=0; con_respaldo=0; sin_foto=0
 
+especificaciones_categoria() {
+  case "$1" in
+    electronica) echo '{"Pantalla":"alta resolución","Almacenamiento":"256 GB","Batería":"larga duración","Conectividad":"Wi-Fi y Bluetooth"}' ;;
+    ropa-y-accesorios) echo '{"Material":"algodón y fibras resistentes","Talla":"varias tallas","Cuidado":"lavado delicado","Color":"seleccionado por modelo"}' ;;
+    hogar) echo '{"Material":"material durable","Uso":"hogar","Mantenimiento":"limpieza sencilla","Garantía":"12 meses"}' ;;
+    alimentos) echo '{"Contenido":"presentación indicada","Origen":"selección nacional","Conservación":"lugar fresco y seco","Alérgenos":"revisar etiqueta"}' ;;
+    belleza-y-salud) echo '{"Contenido":"presentación indicada","Uso":"uso diario","Piel":"apto según etiqueta","Conservación":"lugar fresco y seco"}' ;;
+    deportes) echo '{"Material":"material resistente","Uso":"entrenamiento","Nivel":"uso recreativo","Garantía":"12 meses"}' ;;
+    libros-y-educacion) echo '{"Formato":"tapa o digital según producto","Idioma":"español","Nivel":"inicial a universitario","Contenido":"educativo"}' ;;
+    videojuegos) echo '{"Formato":"edición estándar","Plataforma":"compatible según producto","Idioma":"español","Edad":"consultar clasificación"}' ;;
+    mascotas) echo '{"Material":"seguro para mascotas","Uso":"hogar","Tamaño":"varios tamaños","Cuidado":"limpieza sencilla"}' ;;
+    automotriz) echo '{"Material":"uso automotriz","Compatibilidad":"consultar modelo","Instalación":"manual incluida","Garantía":"12 meses"}' ;;
+    *) echo '{"Calidad":"seleccionada","Uso":"diario","Garantía":"12 meses"}' ;;
+  esac
+}
+
 exec 3<<<"$PRODUCTOS"
 while IFS='|' read -r -u 3 slug sku nombre descripcion precio clave peso especificaciones; do
   [ -n "$slug" ] || continue
@@ -129,10 +168,13 @@ while IFS='|' read -r -u 3 slug sku nombre descripcion precio clave peso especif
   if [ -z "$categoria_id" ]; then echo "  categoría desconocida '$slug' para $sku; se omite" >&2; continue; fi
 
   id=${PRODUCTOS_EXISTENTES[$sku]:-}
-  cuerpo=$(jq -n --arg nombre "$nombre" --arg descripcion "$descripcion" --arg sku "$sku" \
-    --arg categoria "$slug" --arg peso "$peso" --arg especificaciones "$especificaciones" \
+  descripcion_real="$descripcion Producto seleccionado para una compra confiable y uso diario."
+  especificaciones_real="$(especificaciones_categoria "$slug")"
+  cuerpo=$(jq -n --arg nombre "$nombre" --arg descripcion "$descripcion_real" --arg sku "$sku" \
+    --arg especificaciones "$especificaciones_real" \
     --argjson precio "$precio" --argjson stock "$STOCK_INICIAL" --argjson categoriaId "$categoria_id" \
-    '{nombre:$nombre, descripcion:$descripcion, pesoGramos:($peso|tonumber), especificaciones:([$nombre, $especificaciones, ("Categoría: " + $categoria)] | @json), precio:$precio, stock:$stock, sku:$sku, activo:true, categoriaId:$categoriaId}')
+    --argjson peso "$peso" \
+    '{nombre:$nombre, descripcion:$descripcion, pesoGramos:$peso, especificaciones:$especificaciones, precio:$precio, stock:$stock, sku:$sku, activo:true, categoriaId:$categoriaId}')
   if [ -z "$id" ]; then
     id=$(curl -s -X POST -H 'Content-Type: application/json' -d "$cuerpo" "$API/productos" | jq -r '.id // empty')
     if [ -z "$id" ]; then echo "  no se pudo crear $sku" >&2; continue; fi
@@ -154,8 +196,8 @@ while IFS='|' read -r -u 3 slug sku nombre descripcion precio clave peso especif
   fi
 
   foto="$TMP/$sku.jpg"
-  if descargar_foto "$clave" "$foto"; then
-    origen="foto libre"; con_foto=$((con_foto + 1))
+  if imagen_local "$sku" "$foto" && validar_imagen "$sku" "$foto"; then
+    origen="foto local"; con_foto=$((con_foto + 1))
   elif generar_respaldo "$nombre" "${CATEGORIA_NOMBRE[$slug]}" "$foto"; then
     origen="respaldo"; con_respaldo=$((con_respaldo + 1))
   else

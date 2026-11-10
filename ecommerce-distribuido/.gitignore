@@ -7,6 +7,7 @@
 # Frontend
 **/node_modules/
 **/dist/
+infrastructure/seed/imagenes/
 # Herramientas
 .idea/
 .vscode/
