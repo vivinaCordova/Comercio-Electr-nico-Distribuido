@@ -54,8 +54,10 @@ public class ProductoController {
             @RequestParam(name = "pagina", defaultValue = "0") int pagina,
             @RequestParam(name = "tamanio", defaultValue = "20") int tamanio,
             @RequestParam(name = "ordenarPor", defaultValue = "id") String ordenarPor,
-            @RequestParam(name = "direccion", defaultValue = "asc") String direccion) {
-        return productoService.listarActivos(pagina, tamanio, ordenarPor, direccion);
+            @RequestParam(name = "direccion", defaultValue = "asc") String direccion,
+            @RequestParam(name = "categoria", required = false) String categoria,
+            @RequestParam(name = "q", required = false) String q) {
+        return productoService.listarActivos(pagina, tamanio, ordenarPor, direccion, categoria, q);
     }
 
     @GetMapping("/buscar")

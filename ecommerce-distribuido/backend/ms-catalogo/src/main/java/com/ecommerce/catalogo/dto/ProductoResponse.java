@@ -12,6 +12,7 @@ public record ProductoResponse(
         String sku,
         Boolean activo,
         LocalDateTime fechaCreacion,
-        LocalDateTime fechaActualizacion
+        LocalDateTime fechaActualizacion,
+        CategoriaResponse categoria
 ) {
 }

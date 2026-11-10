@@ -30,6 +30,8 @@ public record ProductoCreateRequest(
         @Size(max = 50, message = "El SKU no puede superar 50 caracteres")
         String sku,
 
-        Boolean activo
+        Boolean activo,
+
+        Long categoriaId
 ) {
 }

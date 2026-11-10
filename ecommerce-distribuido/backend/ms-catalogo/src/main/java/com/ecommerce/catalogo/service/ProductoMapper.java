@@ -1,5 +1,6 @@
 package com.ecommerce.catalogo.service;
 
+import com.ecommerce.catalogo.dto.CategoriaResponse;
 import com.ecommerce.catalogo.dto.ProductoCreateRequest;
 import com.ecommerce.catalogo.dto.ProductoResponse;
 import com.ecommerce.catalogo.dto.ProductoUpdateRequest;
@@ -42,6 +43,7 @@ final class ProductoMapper {
                 producto.getSku(),
                 producto.getActivo(),
                 producto.getFechaCreacion(),
-                producto.getFechaActualizacion());
+                producto.getFechaActualizacion(),
+                producto.getCategoria() == null ? null : CategoriaResponse.de(producto.getCategoria()));
     }
 }

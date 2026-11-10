@@ -9,6 +9,7 @@ import com.ecommerce.catalogo.exception.ProductoNotFoundException;
 import com.ecommerce.catalogo.exception.SkuDuplicadoException;
 import com.ecommerce.catalogo.exception.SolicitudInvalidaException;
 import com.ecommerce.catalogo.repository.ProductoRepository;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -27,9 +28,11 @@ public class ProductoService {
             Set.of("id", "nombre", "precio", "stock", "sku", "fechaCreacion");
 
     private final ProductoRepository productoRepository;
+    private final CategoriaService categoriaService;
 
-    public ProductoService(ProductoRepository productoRepository) {
+    public ProductoService(ProductoRepository productoRepository, CategoriaService categoriaService) {
         this.productoRepository = productoRepository;
+        this.categoriaService = categoriaService;
     }
 
     @Transactional
@@ -38,7 +41,9 @@ public class ProductoService {
         if (productoRepository.existsBySku(sku)) {
             throw new SkuDuplicadoException(sku);
         }
-        Producto guardado = productoRepository.saveAndFlush(ProductoMapper.toEntity(request, sku));
+        Producto producto = ProductoMapper.toEntity(request, sku);
+        producto.setCategoria(categoriaService.resolver(request.categoriaId()));
+        Producto guardado = productoRepository.saveAndFlush(producto);
         return ProductoMapper.toResponse(guardado);
     }
 
@@ -51,9 +56,26 @@ public class ProductoService {
         return PageResponse.from(productoRepository.findAll(pageable).map(ProductoMapper::toResponse));
     }
 
-    public PageResponse<ProductoResponse> listarActivos(int pagina, int tamanio, String ordenarPor, String direccion) {
+    // Filtros opcionales y combinables: categoria (slug) y q (texto en el nombre)
+    public PageResponse<ProductoResponse> listarActivos(int pagina, int tamanio, String ordenarPor, String direccion,
+                                                        String categoria, String q) {
         Pageable pageable = construirPageable(pagina, tamanio, ordenarPor, direccion);
-        return PageResponse.from(productoRepository.findByActivoTrue(pageable).map(ProductoMapper::toResponse));
+        boolean porCategoria = categoria != null && !categoria.isBlank();
+        boolean porTexto = q != null && !q.isBlank();
+        String slug = porCategoria ? categoria.trim().toLowerCase(Locale.ROOT) : null;
+        String texto = porTexto ? q.trim() : null;
+
+        Page<Producto> resultado;
+        if (porCategoria && porTexto) {
+            resultado = productoRepository.findByActivoTrueAndCategoriaSlugAndNombreContainingIgnoreCase(slug, texto, pageable);
+        } else if (porCategoria) {
+            resultado = productoRepository.findByActivoTrueAndCategoriaSlug(slug, pageable);
+        } else if (porTexto) {
+            resultado = productoRepository.findByActivoTrueAndNombreContainingIgnoreCase(texto, pageable);
+        } else {
+            resultado = productoRepository.findByActivoTrue(pageable);
+        }
+        return PageResponse.from(resultado.map(ProductoMapper::toResponse));
     }
 
     public PageResponse<ProductoResponse> buscarPorNombre(String nombre, int pagina, int tamanio,
@@ -75,6 +97,7 @@ public class ProductoService {
             throw new SkuDuplicadoException(sku);
         }
         ProductoMapper.aplicarActualizacion(producto, request, sku);
+        producto.setCategoria(categoriaService.resolver(request.categoriaId()));
         return ProductoMapper.toResponse(productoRepository.saveAndFlush(producto));
     }
 
