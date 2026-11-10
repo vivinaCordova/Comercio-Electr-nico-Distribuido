@@ -11,10 +11,12 @@ const conImagen = async (p) => {
 
 export const catalogoService = {
   estado: () => api.get('/api/catalogo/health'),
-  // Productos activos, cada uno con la URL de su imagen principal
-  listar: async () => {
-    const { data } = await api.get(`${BASE}/activos`, { params: { tamanio: 100 } });
+  // Productos activos con imagen. Filtros opcionales: categoria (slug) y q (texto en el nombre)
+  listar: async ({ categoria, q } = {}) => {
+    const { data } = await api.get(`${BASE}/activos`, { params: { tamanio: 100, categoria: categoria || undefined, q: q || undefined } });
     return Promise.all(data.contenido.map(conImagen));
   },
   obtener: (id) => api.get(`${BASE}/${id}`).then((r) => conImagen(r.data)),
+  // Categorías oficiales con la cantidad de productos activos
+  categorias: () => api.get('/api/catalogo/categorias').then((r) => r.data),
 };
