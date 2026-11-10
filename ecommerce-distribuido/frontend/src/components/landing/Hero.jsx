@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import imagenProducto from '../../assets/imagen-producto.svg';
 
 // Hasta tres fotos reales del catálogo como ilustración
 export default function Hero({ productos }) {
@@ -28,7 +29,7 @@ export default function Hero({ productos }) {
       <div className="hero-collage">
         {fotos.map((p, i) => (
           <figure key={p.id} className={`hero-foto hero-foto-${i}`}>
-            <img src={p.imagen} alt={p.nombre} />
+            <img src={p.imagen || imagenProducto} alt={p.nombre} loading="lazy" onError={(event) => { event.currentTarget.src = imagenProducto; }} />
             <figcaption>{p.nombre}</figcaption>
           </figure>
         ))}

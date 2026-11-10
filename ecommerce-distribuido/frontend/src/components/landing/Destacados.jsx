@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCarrito } from '../../context/CarritoContext';
-import { aCentavos, formatoMoneda } from '../../utils/dinero';
+import TarjetaProducto from '../products/TarjetaProducto.jsx';
 
 export default function Destacados({ productos, error }) {
   const { usuario } = useAuth();
@@ -26,23 +26,7 @@ export default function Destacados({ productos, error }) {
 
       <div className="destacados-grid">
         {productos.map((p) => (
-          <article className="product-card" key={p.id}>
-            <div className="product-image">
-              {p.imagen && <img src={p.imagen} alt={p.nombre} loading="lazy" />}
-            </div>
-            <h3>{p.nombre}</h3>
-            <small className="categoria-label">{p.categoria?.nombre}</small>
-            <div className="product-footer">
-              <strong>{formatoMoneda(aCentavos(p.precio))}</strong>
-              <button
-                className="add-button"
-                onClick={() => comprar(p)}
-                disabled={p.stock < 1}
-                aria-label={`Agregar ${p.nombre} al carrito`}
-                title={usuario ? 'Agregar al carrito' : 'Inicia sesión para comprar'}
-              >+</button>
-            </div>
-          </article>
+          <TarjetaProducto key={p.id} producto={p} onAgregar={comprar} />
         ))}
       </div>
     </section>

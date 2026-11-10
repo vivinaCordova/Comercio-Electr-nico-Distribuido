@@ -4,6 +4,7 @@ import { authService } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
 import Marca from '../components/layout/Marca.jsx';
 import { limpiarTexto, normalizarEmail, validarNombre, validarEmail, validarPassword, validarConfirmacion, fuerzaPassword } from '../utils/validaciones';
+import carritoIlustracion from '../assets/imagen-producto.svg';
 
 const MAX_FALLOS = 5;
 const BLOQUEO_SEG = 30;
@@ -93,6 +94,7 @@ export default function AuthPage({ modo }) {
 
   return (
     <div className="auth-page">
+      <aside className="auth-illustration"><img src={carritoIlustracion} alt="Compra en E-commerce" /><h2>Compra fácil, rápida y segura</h2><p>Encuentra tus productos favoritos y controla tus pedidos en un solo lugar.</p></aside>
       <form className="auth-card" onSubmit={enviar} noValidate>
         <Marca />
         <h1>{esRegistro ? 'Crear cuenta' : 'Iniciar sesión'}</h1>

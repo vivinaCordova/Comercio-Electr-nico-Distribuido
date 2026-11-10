@@ -16,7 +16,16 @@ export const catalogoService = {
     const { data } = await api.get(`${BASE}/activos`, { params: { tamanio: 100, categoria: categoria || undefined, q: q || undefined } });
     return Promise.all(data.contenido.map(conImagen));
   },
-  obtener: (id) => api.get(`${BASE}/${id}`).then((r) => conImagen(r.data)),
+  obtener: (id) => api.get(`${BASE}/${id}`).then(async (r) => {
+    const detalle = r.data;
+    const imagenes = detalle.imagenes || [];
+    const principal = imagenes.find((i) => i.esPrincipal) || imagenes[0];
+    return {
+      ...detalle,
+      imagenes: imagenes.map((i) => ({ ...i, src: `${api.defaults.baseURL}${i.url}` })),
+      imagen: principal ? `${api.defaults.baseURL}${principal.url}` : null,
+    };
+  }),
   // Categorías oficiales con la cantidad de productos activos
   categorias: () => api.get('/api/catalogo/categorias').then((r) => r.data),
 };

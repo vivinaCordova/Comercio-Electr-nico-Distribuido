@@ -5,8 +5,8 @@ import ChipsCategorias from '../components/catalogo/ChipsCategorias.jsx';
 import IconoCategoria from '../components/catalogo/IconoCategoria.jsx';
 import { useCarrito } from '../context/CarritoContext';
 import { catalogoService } from '../services/catalogoService';
-import { formatoMoneda, aCentavos } from '../utils/dinero';
 import { textoError } from '../utils/errores';
+import TarjetaProducto from '../components/products/TarjetaProducto.jsx';
 
 // Mensaje de estado vacío según los filtros activos
 const mensajeVacio = (categoria, busqueda) => {
@@ -23,7 +23,7 @@ export default function HomePage() {
   const { cantidadTotal, error, setError, agregar } = useCarrito();
   const [categorias, setCategorias] = useState([]);
   const [productos, setProductos] = useState([]);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(searchParams.get('q') || '');
   const [busqueda, setBusqueda] = useState('');
   const [cargando, setCargando] = useState(true);
 
@@ -32,6 +32,7 @@ export default function HomePage() {
     const timer = setTimeout(() => setBusqueda(query.trim()), 300);
     return () => clearTimeout(timer);
   }, [query]);
+  useEffect(() => { setQuery(searchParams.get('q') || ''); }, [searchParams]);
 
   useEffect(() => {
     catalogoService.categorias().then(setCategorias).catch(() => setCategorias([]));
@@ -91,15 +92,7 @@ export default function HomePage() {
 
           <div className="product-grid">
             {!cargando && productos.map((product) => (
-              <article className="product-card" key={product.id}>
-                <div className="product-image">{product.imagen && <img src={product.imagen} alt={product.nombre} loading="lazy" />}</div>
-                <h2>{product.nombre}</h2>
-                <small className="categoria-label">{product.categoria?.nombre}</small>
-                <div className="product-footer">
-                  <div><strong>{formatoMoneda(aCentavos(product.precio))}</strong></div>
-                  <button className="add-button" onClick={() => agregar(product)} disabled={product.stock < 1} aria-label={`Agregar ${product.nombre}`}>↗</button>
-                </div>
-              </article>
+              <TarjetaProducto key={product.id} producto={product} onAgregar={agregar} />
             ))}
           </div>
         </section>

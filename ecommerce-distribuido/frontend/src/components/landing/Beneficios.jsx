@@ -6,6 +6,7 @@ const BENEFICIOS = [
   ['envio', 'Pedidos en línea', 'Pide desde la tienda; el sistema confirma tu orden según el stock disponible.'],
   ['pago', 'Compra segura', 'Compras con tu cuenta registrada; el total, con la promoción, lo calcula el servidor.'],
   ['soporte', 'Seguimiento', 'Revisa el estado de tus pedidos y el motivo de cancelación en «Mis órdenes».'],
+  ['hogar', 'Compra desde cualquier lugar', 'Catálogo disponible en todo momento desde tu teléfono u ordenador.'],
 ];
 
 export default function Beneficios() {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import Marca from './Marca.jsx';
 import { useAuth } from '../../context/AuthContext';
@@ -10,6 +10,7 @@ export default function Encabezado() {
   const { usuario, salir } = useAuth();
   const { cantidadTotal } = useCarrito();
   const navigate = useNavigate();
+  const [busqueda, setBusqueda] = useState('');
   const cerrar = () => { salir(); navigate('/login'); };
 
   return (
@@ -23,6 +24,10 @@ export default function Encabezado() {
           </NavLink>
         ))}
       </nav>
+      <form className="header-search" onSubmit={(e) => { e.preventDefault(); navigate(`/productos?q=${encodeURIComponent(busqueda)}`); }}>
+        <input value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar" aria-label="Buscar productos" />
+        <button type="submit" aria-label="Buscar">⌕</button>
+      </form>
       <div className="profile-actions">
         <span className="avatar" title={usuario?.email}>{(usuario?.nombre || '?')[0].toUpperCase()}</span>
         <button className="salir" onClick={cerrar}>Salir</button>

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Encabezado from '../components/layout/Encabezado.jsx';
 import { useCarrito } from '../context/CarritoContext';
 import { PROMO_SELL12, aCentavos, formatoMoneda } from '../utils/dinero';
+import imagenProducto from '../assets/imagen-producto.svg';
 
 export default function CartPage() {
   const navigate = useNavigate();
@@ -42,7 +43,7 @@ export default function CartPage() {
             {items.map((item) => (
               <li className={`carrito-linea${item.noDisponible ? ' no-disponible' : ''}`} key={item.id}>
                 <div className="carrito-imagen">
-                  {item.imagen ? <img src={item.imagen} alt={item.nombre} /> : <span>Sin imagen</span>}
+                  <img src={item.imagen || imagenProducto} alt={item.nombre} loading="lazy" onError={(event) => { event.currentTarget.src = imagenProducto; }} />
                 </div>
                 <div className="carrito-info">
                   <h2>{item.nombre}</h2>

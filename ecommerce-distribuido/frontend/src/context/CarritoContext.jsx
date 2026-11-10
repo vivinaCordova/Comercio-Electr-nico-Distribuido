@@ -64,8 +64,8 @@ export function CarritoProvider({ children }) {
   const disponibles = items.filter((i) => !i.noDisponible);
   const totales = calcularTotales(disponibles, promo);
 
-  const agregar = (producto) => ejecutar(async () => {
-    await recibirCarrito(await carritoService.agregar(usuario.id, producto.id, 1), { [producto.id]: producto });
+  const agregar = (producto, cantidad = 1) => ejecutar(async () => {
+    await recibirCarrito(await carritoService.agregar(usuario.id, producto.id, cantidad), { [producto.id]: producto });
   }, 'No se pudo agregar el producto al carrito.');
 
   const quitar = (item) => ejecutar(async () => {
