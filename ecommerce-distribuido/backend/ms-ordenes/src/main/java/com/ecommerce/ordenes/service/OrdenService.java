@@ -40,7 +40,7 @@ public class OrdenService {
         orden.actualizarTotal(total);
         orden = repository.save(orden);
         eventPublisher.publicar("orden.creada",
-                new EventMessage("orden.creada", orden.getId().toString(), orden.getUserId(), orden.getTotal(), Instant.now()));
+                new EventMessage("orden.creada", orden.getId().toString(), orden.getUserId(), orden.getTotal(), Instant.now(), orden.getItems().stream().map(i -> new EventMessage.Item(i.getProductoId(), i.getCantidad())).toList()));
         return OrdenResponse.from(orden);
     }
 
