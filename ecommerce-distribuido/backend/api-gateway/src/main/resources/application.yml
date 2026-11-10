@@ -21,6 +21,9 @@ spring:
         - id: carrito
           uri: ${CARRITO_URL:http://localhost:8083}
           predicates: [Path=/api/carrito/**]
+        - id: usuarios
+          uri: ${USUARIOS_URL:http://localhost:8085}
+          predicates: [Path=/api/usuarios/**]
         - id: notificaciones
           uri: ${NOTIFICACIONES_URL:http://localhost:8084}
           predicates: [Path=/api/notificaciones/**]
