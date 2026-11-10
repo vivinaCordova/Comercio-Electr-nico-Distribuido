@@ -9,7 +9,7 @@ spring:
     password: ${POSTGRES_PASSWORD:change_me_local_only}
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     open-in-view: false
   flyway:
     enabled: false
