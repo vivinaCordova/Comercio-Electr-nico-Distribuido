@@ -23,6 +23,7 @@ export const validarEmail = (valor) => {
   if (v.length > 254) return 'El correo es demasiado largo.';
   if (!/^[a-z0-9]+([._%+-][a-z0-9]+)*@[a-z0-9]+(-[a-z0-9]+)*(\.[a-z0-9]+(-[a-z0-9]+)*)*\.[a-z]{2,}$/.test(v)) return 'El formato del correo no es válido.';
   const [usuario, dominio] = v.split('@');
+  if (dominio !== 'unl.edu.ec') return 'Usa tu correo institucional @unl.edu.ec.';
   if (usuario.length > 64) return 'La parte anterior al @ es demasiado larga.';
   if (ERRORES_COMUNES[dominio]) return `¿Quisiste decir ${usuario}@${ERRORES_COMUNES[dominio]}?`;
   if (DESECHABLES.includes(dominio)) return 'No se permiten correos temporales.';

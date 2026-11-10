@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import React from 'react';
+import Encabezado from '../components/layout/Encabezado.jsx';
 import { ordenesService } from '../services/ordenesService';
 
 const products = [
@@ -71,18 +72,7 @@ export default function HomePage() {
 
   return (
     <div className="shop-shell">
-      <header className="shop-header">
-        <a className="brand" href="/">● <span>Sell</span>Pilot</a>
-        <nav className="shop-nav">
-          <a href="/">▦ <span>Dashboard</span></a>
-          <a href="#products">◈ <span>Products</span></a>
-          <a href="#orders">♧ <span>My Orders</span></a>
-          <a href="#wishlist">♡ <span>Wishlist</span></a>
-          <a className="active" href="#cart">🛒 <span>Cart</span></a>
-          <a href="#settings">⚙ <span>Settings</span></a>
-        </nav>
-        <div className="profile-actions"><button aria-label="Notifications">♧</button><button aria-label="Wishlist">♡</button><span className="avatar">C</span></div>
-      </header>
+      <Encabezado />
 
       <div className="shop-content">
         <section className="products-column" id="products">

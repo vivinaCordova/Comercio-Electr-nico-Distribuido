@@ -101,7 +101,7 @@ export default function AuthPage({ modo }) {
           </Campo>
         )}
         <Campo etiqueta="Correo electrónico" error={ver('email')}>
-          <input {...props('email')} type="email" maxLength={254} autoComplete="email" placeholder="correo@ejemplo.com" />
+          <input {...props('email')} type="email" maxLength={254} autoComplete="email" placeholder="usuario@unl.edu.ec" />
         </Campo>
         <Campo etiqueta="Contraseña" error={ver('password')}>
           <div className="auth-input-wrap">

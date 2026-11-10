@@ -46,3 +46,17 @@ button { cursor: pointer; border: 0; }
 .strength[data-nivel="2"] i:nth-child(-n+2) { background: #f5a623; }
 .strength[data-nivel="3"] i:nth-child(-n+3) { background: #8bc34a; }
 .strength[data-nivel="4"] i:nth-child(-n+4) { background: #2e9e5b; }
+
+/* ===== Tienda a pantalla completa ===== */
+.shop-shell { width: 100%; min-height: 100vh; margin: 0; border-radius: 0; box-shadow: none; display: flex; flex-direction: column; }
+.shop-header { padding: 18px 40px; }
+.shop-content { flex: 1; padding: 24px 40px; gap: 28px; }
+.products-column { padding: 4px 0 25px; }
+.product-grid { gap: 20px; }
+@media (min-width: 1200px) {
+  .product-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .product-image { height: 190px; }
+  .shop-content { grid-template-columns: minmax(0, 2fr) minmax(380px, .8fr); }
+}
+@media (max-width: 850px) { .shop-header, .shop-content { padding-left: 16px; padding-right: 16px; } }
+.profile-actions .salir { width: auto; height: 34px; border-radius: 18px; padding: 0 14px; font-size: 11px; color: #f47e16; }
