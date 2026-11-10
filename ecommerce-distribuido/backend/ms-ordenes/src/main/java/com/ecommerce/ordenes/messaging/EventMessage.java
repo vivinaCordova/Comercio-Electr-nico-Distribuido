@@ -1,3 +1,4 @@
 package com.ecommerce.ordenes.messaging;
 import java.time.Instant;
-public record EventMessage(String tipo, String ordenId, String detalle, Instant fecha) {}
+import java.math.BigDecimal;
+public record EventMessage(String tipo, String ordenId, Long userId, BigDecimal total, Instant fecha) {}
