@@ -58,25 +58,27 @@ export default function CheckoutPage() {
               <Link className="boton-naranja" to="/productos">Ver productos</Link>
             </div>
           ) : (
-            <table className="factura">
-              <thead>
-                <tr><th>Producto</th><th>Cantidad</th><th>Precio unitario</th><th>Subtotal</th></tr>
-              </thead>
-              <tbody>
-                {items.map((item) => (
-                  <tr key={item.id} className={item.noDisponible ? 'no-disponible' : ''}>
-                    <td>{item.nombre}{item.noDisponible && <small> (no disponible)</small>}</td>
-                    <td>{item.cantidad}</td>
-                    <td>{formatoMoneda(aCentavos(item.precio))}</td>
-                    <td>{item.noDisponible ? '—' : formatoMoneda(aCentavos(item.precio) * item.cantidad)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="tabla-scroll">
+              <table className="factura">
+                <thead>
+                  <tr><th>Producto</th><th>Cantidad</th><th>Precio unitario</th><th>Subtotal</th></tr>
+                </thead>
+                <tbody>
+                  {items.map((item) => (
+                    <tr key={item.id} className={item.noDisponible ? 'no-disponible' : ''}>
+                      <td>{item.nombre}{item.noDisponible && <small> (no disponible)</small>}</td>
+                      <td>{item.cantidad}</td>
+                      <td>{formatoMoneda(aCentavos(item.precio))}</td>
+                      <td>{item.noDisponible ? '—' : formatoMoneda(aCentavos(item.precio) * item.cantidad)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </section>
 
-        <aside className="cart-panel">
+        <aside className="cart-panel resumen">
           <div className="cart-title"><h1>Total</h1></div>
           <div className="summary">
             <div><span>Subtotal</span><b>{formatoMoneda(totales.subtotal)}</b></div>

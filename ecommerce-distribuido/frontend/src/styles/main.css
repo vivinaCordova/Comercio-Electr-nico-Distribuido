@@ -63,6 +63,23 @@ button { cursor: pointer; border: 0; }
 
 .shop-content.una-columna { grid-template-columns: 1fr; }
 
+/* ===== Navegación: enlace de la ruta actual resaltado ===== */
+.shop-nav a { padding: 6px 2px; border-bottom: 2px solid transparent; font-weight: 500; }
+.shop-nav a.active { color: #f47e16; font-weight: 600; border-bottom-color: #f47e16; }
+.shop-nav .badge { font-style: normal; background: #ff8d1d; color: #fff; border-radius: 999px; padding: 1px 7px; margin-left: 4px; font-size: 10px; }
+
+/* ===== Factura / resumen de compra ===== */
+.tabla-scroll { overflow-x: auto; }
+.factura { width: 100%; border-collapse: collapse; font-size: 13px; }
+.factura th { text-align: left; color: #888; font-weight: 600; font-size: 12px; border-bottom: 1px solid #eee; padding: 10px 8px; }
+.factura td { border-bottom: 1px solid #f3f3f3; padding: 12px 8px; color: #333; }
+.factura th:not(:first-child), .factura td:not(:first-child) { text-align: right; white-space: nowrap; }
+.factura tr.no-disponible td { color: #9c2c2c; }
+.factura small { color: #9c2c2c; }
+.cliente { color: #666; font-size: 13px; margin: 0 0 12px; }
+.volver { color: #f28a36; font-size: 13px; font-weight: 600; text-decoration: none; }
+.section-heading .volver { white-space: nowrap; }
+
 /* ===== Vista de carrito ===== */
 .carrito-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
 .carrito-linea { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto auto auto; align-items: center; gap: 18px; border: 1px solid #ededed; border-radius: 18px; padding: 14px; background: #fff; }
