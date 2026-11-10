@@ -6,7 +6,12 @@ import { carritoService } from '../services/carritoService';
 import { ordenesService } from '../services/ordenesService';
 
 const money = (value) => `$${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-const textoError = (error, porDefecto) => error.response?.data?.error || error.response?.data?.message || porDefecto;
+// Muestra el error real del servidor (o el de red) en lugar de un texto genérico
+const textoError = (error, porDefecto) => {
+  const data = error.response?.data;
+  const mensaje = typeof data === 'string' ? (data.trim().startsWith('<') ? '' : data) : data?.error || data?.message;
+  return mensaje || error.message || porDefecto;
+};
 
 export default function HomePage() {
   const { usuario } = useAuth();
@@ -55,14 +60,20 @@ export default function HomePage() {
         userId: usuario.id,
         items: cart.map(({ id, cantidad, precio }) => ({ productId: id, quantity: cantidad, precioEsperado: precio })),
       });
+    } catch (error) {
+      setMessage({ type: 'error', text: textoError(error, 'No se pudo crear la orden. Verifica ms-ordenes y ms-catalogo.') });
+      setSubmitting(false);
+      return;
+    }
+    try {
       await carritoService.vaciar(usuario.id);
       setItems([]);
       setMessage({ type: 'success', text: 'Orden creada correctamente.' });
     } catch (error) {
-      setMessage({ type: 'error', text: textoError(error, 'No se pudo crear la orden. Verifica ms-ordenes y ms-catalogo.') });
-    } finally {
-      setSubmitting(false);
+      // La orden ya existe: solo falló el vaciado del carrito
+      setMessage({ type: 'error', text: 'Orden creada, pero no se pudo vaciar el carrito: ' + textoError(error, 'revisa ms-carrito') });
     }
+    setSubmitting(false);
   };
 
   return (
