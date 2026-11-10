@@ -1,48 +1,47 @@
-import { useMemo, useState } from 'react';
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import Encabezado from '../components/layout/Encabezado.jsx';
+import { useAuth } from '../context/AuthContext';
+import { catalogoService } from '../services/catalogoService';
+import { carritoService } from '../services/carritoService';
 import { ordenesService } from '../services/ordenesService';
 
-const products = [
-  { id: 1, title: 'iPhone 17 Pro', category: 'Mobile', price: 1340, oldPrice: 1400, image: 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=500&q=80' },
-  { id: 2, title: 'vivo X300 5G', category: 'Mobile', price: 780, oldPrice: 825, image: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=500&q=80' },
-  { id: 3, title: 'Samsung Galaxy S25 Ultra', category: 'Mobile', price: 1250, oldPrice: 1350, image: 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=500&q=80' },
-  { id: 4, title: 'iPhone 17', category: 'Mobile', price: 780, oldPrice: 820, image: 'https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=500&q=80' },
-  { id: 5, title: 'iPhone Air', category: 'Mobile', price: 890, oldPrice: 930, image: 'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=500&q=80' },
-  { id: 6, title: 'OnePlus 13', category: 'Mobile', price: 750, oldPrice: 800, image: 'https://images.unsplash.com/photo-1605236453806-6ff36851218e?w=500&q=80' },
-  { id: 7, title: 'Google Pixel 9', category: 'Mobile', price: 690, oldPrice: 740, image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=500&q=80' },
-  { id: 8, title: 'Redmi Note 14', category: 'Mobile', price: 420, oldPrice: 460, image: 'https://images.unsplash.com/photo-1592286927505-2fd8b6f1c2a3?w=500&q=80' },
-];
-
-const categories = ['Mobile', 'All Products', 'Grocery', 'Most Purchased', 'Shoes', 'Furniture'];
-const money = (value) => `$${value.toLocaleString('en-US')}`;
+const money = (value) => `$${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const textoError = (error, porDefecto) => error.response?.data?.error || error.response?.data?.message || porDefecto;
 
 export default function HomePage() {
-  const [cart, setCart] = useState([{ ...products[0], quantity: 1 }, { ...products[1], quantity: 1 }, { ...products[2], quantity: 1 }]);
-  const [category, setCategory] = useState('Mobile');
+  const { usuario } = useAuth();
+  const [productos, setProductos] = useState([]);
+  const [items, setItems] = useState([]); // [{ productoId, cantidad }] guardado en ms-carrito
   const [query, setQuery] = useState('');
   const [promo, setPromo] = useState('');
   const [message, setMessage] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [cargando, setCargando] = useState(true);
 
-  const visibleProducts = useMemo(() => products.filter((product) =>
-    (category === 'All Products' || product.category === category) &&
-    product.title.toLowerCase().includes(query.toLowerCase())
-  ), [category, query]);
+  useEffect(() => {
+    Promise.all([catalogoService.listar(), carritoService.obtener(usuario.id)])
+      .then(([lista, carrito]) => { setProductos(lista); setItems(carrito.items); })
+      .catch((error) => setMessage({ type: 'error', text: textoError(error, 'No se pudo cargar la tienda. Verifica ms-catalogo, ms-carrito y el Gateway.') }))
+      .finally(() => setCargando(false));
+  }, [usuario.id]);
 
-  const subtotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
-  const discount = promo.trim().toUpperCase() === 'SELL12' ? Math.round(subtotal * 0.12) : 0;
+  const visibleProducts = useMemo(() => productos.filter((p) => p.nombre.toLowerCase().includes(query.toLowerCase())), [productos, query]);
+  const cart = items.map((i) => ({ ...productos.find((p) => p.id === i.productoId), cantidad: i.cantidad })).filter((i) => i.id);
+
+  const subtotal = cart.reduce((total, item) => total + item.precio * item.cantidad, 0);
+  const discount = promo.trim().toUpperCase() === 'SELL12' ? Math.round(subtotal * 12) / 100 : 0;
   const total = subtotal - discount;
 
-  const addToCart = (product) => setCart((current) => {
-    const existing = current.find((item) => item.id === product.id);
-    return existing
-      ? current.map((item) => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item)
-      : [...current, { ...product, quantity: 1 }];
-  });
-
-  const changeQuantity = (id, amount) => setCart((current) => current
-    .map((item) => item.id === id ? { ...item, quantity: item.quantity + amount } : item)
-    .filter((item) => item.quantity > 0));
+  // Cada acción se guarda en ms-carrito y la pantalla se actualiza con su respuesta
+  const actualizar = (peticion) => peticion
+    .then((carrito) => setItems(carrito.items))
+    .catch((error) => setMessage({ type: 'error', text: textoError(error, 'No se pudo actualizar el carrito.') }));
+  const addToCart = (producto) => actualizar(carritoService.agregar(usuario.id, producto.id, 1));
+  const changeQuantity = (item, cantidad) => actualizar(cantidad > 0
+    ? carritoService.cambiar(usuario.id, item.id, cantidad)
+    : carritoService.quitar(usuario.id, item.id));
+  const clearCart = () => carritoService.vaciar(usuario.id).then(() => setItems([]))
+    .catch((error) => setMessage({ type: 'error', text: textoError(error, 'No se pudo vaciar el carrito.') }));
 
   const createOrder = async () => {
     if (!cart.length) {
@@ -53,17 +52,14 @@ export default function HomePage() {
     setMessage(null);
     try {
       await ordenesService.crear({
-        userId: 1,
-        items: cart.map(({ id, quantity, price }) => ({
-          productId: id,
-          quantity,
-          precioEsperado: price,
-        })),
+        userId: usuario.id,
+        items: cart.map(({ id, cantidad, precio }) => ({ productId: id, quantity: cantidad, precioEsperado: precio })),
       });
+      await carritoService.vaciar(usuario.id);
+      setItems([]);
       setMessage({ type: 'success', text: 'Orden creada correctamente.' });
     } catch (error) {
-      const detail = error.response?.data?.error || 'No se pudo crear la orden. Verifica ms-ordenes y ms-catalogo.';
-      setMessage({ type: 'error', text: detail });
+      setMessage({ type: 'error', text: textoError(error, 'No se pudo crear la orden. Verifica ms-ordenes y ms-catalogo.') });
     } finally {
       setSubmitting(false);
     }
@@ -71,50 +67,39 @@ export default function HomePage() {
 
   return (
     <div className="shop-shell">
-      <header className="shop-header">
-        <a className="brand" href="/">● <span>Sell</span>Pilot</a>
-        <nav className="shop-nav">
-          <a href="/">▦ <span>Dashboard</span></a>
-          <a href="#products">◈ <span>Products</span></a>
-          <a href="#orders">♧ <span>My Orders</span></a>
-          <a href="#wishlist">♡ <span>Wishlist</span></a>
-          <a className="active" href="#cart">🛒 <span>Cart</span></a>
-          <a href="#settings">⚙ <span>Settings</span></a>
-        </nav>
-        <div className="profile-actions"><button aria-label="Notifications">♧</button><button aria-label="Wishlist">♡</button><span className="avatar">C</span></div>
-      </header>
+      <Encabezado />
 
       <div className="shop-content">
         <section className="products-column" id="products">
           <div className="section-heading">
-            <h1>Cart Products</h1>
+            <h1>Productos</h1>
             <div className="heading-actions">
-              <label className="search-box">⌕<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search..." /></label>
-              <button className="filter-button">☷ <span>Filter</span></button>
-              <button className="create-button" onClick={() => document.getElementById('cart')?.scrollIntoView({ behavior: 'smooth' })}>＋ Create Order</button>
+              <label className="search-box">⌕<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar..." /></label>
+              <button className="create-button" onClick={() => document.getElementById('cart')?.scrollIntoView({ behavior: 'smooth' })}>＋ Crear orden</button>
             </div>
           </div>
-          <div className="category-list">{categories.map((item) => <button key={item} className={category === item ? 'category active' : 'category'} onClick={() => setCategory(item)}>{item}</button>)}</div>
+          {cargando && <p className="empty-cart">Cargando productos...</p>}
+          {!cargando && !visibleProducts.length && <p className="empty-cart">No hay productos para mostrar.</p>}
           <div className="product-grid">
             {visibleProducts.map((product) => <article className="product-card" key={product.id}>
-              <div className="product-image"><img src={product.image} alt={product.title} /><button aria-label={`Favorito ${product.title}`}>♡</button></div>
-              <h2>{product.title}</h2>
-              <div className="product-footer"><div><strong>{money(product.price)}</strong> <del>{money(product.oldPrice)}</del></div><button className="add-button" onClick={() => addToCart(product)} aria-label={`Agregar ${product.title}`}>↗</button></div>
+              <div className="product-image">{product.imagen && <img src={product.imagen} alt={product.nombre} />}</div>
+              <h2>{product.nombre}</h2>
+              <div className="product-footer"><div><strong>{money(product.precio)}</strong></div><button className="add-button" onClick={() => addToCart(product)} disabled={product.stock < 1} aria-label={`Agregar ${product.nombre}`}>↗</button></div>
             </article>)}
           </div>
         </section>
 
         <aside className="cart-panel" id="cart">
-          <div className="cart-title"><h1>Cart</h1><button onClick={() => setCart([])}>Delete All</button></div>
+          <div className="cart-title"><h1>Carrito</h1><button onClick={clearCart}>Vaciar</button></div>
           <div className="cart-items">
             {cart.length ? cart.map((item) => <div className="cart-item" key={item.id}>
-              <span className="selected">✓</span><img src={item.image} alt="" /><div className="cart-item-info"><strong>{item.title}</strong><small>Silver</small><div className="quantity"><button onClick={() => changeQuantity(item.id, -1)}>−</button><span>{item.quantity}</span><button onClick={() => changeQuantity(item.id, 1)}>＋</button></div></div><button className="remove-item" onClick={() => changeQuantity(item.id, -item.quantity)} aria-label={`Eliminar ${item.title}`}>♧</button><b>{money(item.price * item.quantity)}</b>
+              <span className="selected">✓</span><img src={item.imagen} alt="" /><div className="cart-item-info"><strong>{item.nombre}</strong><small>{item.sku}</small><div className="quantity"><button onClick={() => changeQuantity(item, item.cantidad - 1)}>−</button><span>{item.cantidad}</span><button onClick={() => changeQuantity(item, item.cantidad + 1)}>＋</button></div></div><button className="remove-item" onClick={() => changeQuantity(item, 0)} aria-label={`Eliminar ${item.nombre}`}>♧</button><b>{money(item.precio * item.cantidad)}</b>
             </div>) : <p className="empty-cart">Tu carrito está vacío.</p>}
           </div>
-          <div className="promo"><span>◉ &nbsp; Promo Every User (12%)</span><input value={promo} onChange={(event) => setPromo(event.target.value)} placeholder="SELL12" /><button onClick={() => setPromo('SELL12')}>Change Promo</button></div>
-          <div className="summary"><div><span>Total Product Price</span><b>{money(subtotal)}</b></div><div><span>Discount</span><b className="discount">−{money(discount)}</b></div><div className="total-row"><span>Total Payment</span><b>{money(total)}</b></div></div>
+          <div className="promo"><span>◉ &nbsp; Promo para todos (12%)</span><input value={promo} onChange={(event) => setPromo(event.target.value)} placeholder="SELL12" /><button onClick={() => setPromo('SELL12')}>Aplicar</button></div>
+          <div className="summary"><div><span>Total productos</span><b>{money(subtotal)}</b></div><div><span>Descuento</span><b className="discount">−{money(discount)}</b></div><div className="total-row"><span>Total a pagar</span><b>{money(total)}</b></div></div>
           {message && <p className={`order-message ${message.type}`}>{message.text}</p>}
-          <button className="payment-button" onClick={createOrder} disabled={submitting}>{submitting ? 'Creating order...' : 'Proceed to Payment'}</button>
+          <button className="payment-button" onClick={createOrder} disabled={submitting}>{submitting ? 'Creando orden...' : 'Proceder al pago'}</button>
         </aside>
       </div>
     </div>
