@@ -21,7 +21,6 @@ Configure `POSTGRES_PASSWORD`, además de los valores de conexión definidos en
 mvn spring-boot:run
 ```
 
-La cuenta administradora inicial se crea mediante el mecanismo de inicialización
-configurado por el servicio (seed o datos de arranque). Si no existe, registre
-un usuario institucional desde `/api/usuarios/registro`; no se documenta una
-contraseña fija en el repositorio.
+Al iniciar la aplicación, un `CommandLineRunner` crea
+`admin@unl.edu.ec` con la contraseña inicial `admin` si la cuenta no existe.
+Cambie esa contraseña para cualquier entorno que no sea una demostración local.
