@@ -41,6 +41,15 @@ export default function ProductDetailPage() {
   }, [id]);
 
   const imagenes = useMemo(() => producto?.imagenes?.length ? producto.imagenes : [{ src: producto?.imagen }], [producto]);
+  const especificaciones = useMemo(() => {
+    if (!producto?.especificaciones) return [];
+    try {
+      const datos = JSON.parse(producto.especificaciones);
+      return Object.entries(datos).slice(0, 10);
+    } catch {
+      return [];
+    }
+  }, [producto]);
   const agregarAlCarrito = async () => {
     if (!usuario) {
       navigate('/login', { state: { from: `/productos/${id}` } });
@@ -83,12 +92,12 @@ export default function ProductDetailPage() {
           </section>
         </div>
         {producto.descripcion && <section className="product-extra"><h2>Descripción</h2><p>{producto.descripcion}</p></section>}
-        {(producto.pesoGramos || producto.especificaciones) && (
+        {(producto.pesoGramos || especificaciones.length > 0) && (
           <section className="product-extra">
             <h2>Características</h2>
             <table><tbody>
               {producto.pesoGramos && <tr><th>Peso</th><td>{producto.pesoGramos >= 1000 ? `${(producto.pesoGramos / 1000).toFixed(2)} kg` : `${producto.pesoGramos} g`}</td></tr>}
-              {producto.especificaciones && <tr><th>Especificaciones</th><td>{producto.especificaciones}</td></tr>}
+              {especificaciones.map(([clave, valor]) => <tr key={clave}><th>{clave}</th><td>{valor}</td></tr>)}
             </tbody></table>
           </section>
         )}
