@@ -3,7 +3,7 @@ services:
     image: postgres:16
     environment:
       POSTGRES_USER: ecommerce
-      POSTGRES_PASSWORD: local123
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?define POSTGRES_PASSWORD}
       POSTGRES_DB: carrito_db
     volumes:
       - carrito_data:/var/lib/postgresql/data
@@ -20,7 +20,7 @@ services:
     environment:
       DB_HOST: carrito-db
       POSTGRES_USER: ecommerce
-      POSTGRES_PASSWORD: local123
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?define POSTGRES_PASSWORD}
     depends_on:
       carrito-db:
         condition: service_healthy

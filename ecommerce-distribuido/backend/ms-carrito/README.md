@@ -1,11 +1,25 @@
 # ms-carrito
 
-Proyecto Spring Boot independiente para ejecucion local.
+Servicio de carrito por usuario. Expone su API en el puerto 8083 y utiliza
+`carrito_db` en PostgreSQL.
 
-Requisitos: Java 21, Maven 3.9+; los servicios de infraestructura necesarios deben estar iniciados en localhost.
+## Ejecución con Docker Compose
 
-Desde esta carpeta: `mvn spring-boot:run`.
+Desde esta carpeta, defina obligatoriamente `POSTGRES_PASSWORD` y ejecute:
 
-Configuracion: `src/main/resources/application.yml`; variables de entorno definidas en el README raiz.
+```bash
+export POSTGRES_PASSWORD='una-clave-local'
+docker compose up --build
+```
 
-La funcionalidad es inicial y no constituye un sistema comercial completo.
+Compose usa la misma variable para PostgreSQL y para `ms-carrito`; no hay
+contraseñas escritas en el archivo.
+
+## API
+
+- `GET /api/carrito/{usuarioId}`
+- `POST /api/carrito/{usuarioId}/items`
+- `PUT /api/carrito/{usuarioId}/items/{productoId}`
+- `DELETE /api/carrito/{usuarioId}/items/{productoId}`
+- `DELETE /api/carrito/{usuarioId}`
+- `GET /api/carrito/health`

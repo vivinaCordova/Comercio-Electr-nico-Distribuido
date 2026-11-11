@@ -1,14 +1,23 @@
 flowchart LR
-  UI[React Vite] --> GW[API Gateway]
-  GW --> C[Catálogo]
-  GW --> O[Órdenes]
-  GW --> K[Carrito]
-  GW --> N[Notificaciones]
-  C --> PC[(PostgreSQL catálogo)]
-  O --> PO[(PostgreSQL órdenes)]
-  K --> PK[(PostgreSQL carrito)]
-  N --> PN[(PostgreSQL notificaciones)]
-  C <--> MQ[RabbitMQ]
-  O <--> MQ
-  N <--> MQ
-  N --> MH[MailHog]
+    U[Usuario] --> F[Frontend React :5173]
+    F --> G[api-gateway :8080<br/>CORS y enrutamiento]
+
+    G --> C[ms-catalogo :8081]
+    G --> O[ms-ordenes :8082]
+    G --> K[ms-carrito :8083<br/>Docker]
+    G --> S[ms-usuarios :8085]
+    G --> N[ms-notificaciones :8084<br/>pendiente de integrar]
+
+    C --- CDB[(PostgreSQL<br/>catalogo_db)]
+    O --- ODB[(PostgreSQL<br/>ordenes_db)]
+    K --- KDB[(PostgreSQL<br/>carrito_db)]
+    S --- SDB[(PostgreSQL<br/>usuarios_db)]
+    N --- NDB[(PostgreSQL<br/>notificaciones_db)]
+
+    O -->|REST: validar producto| C
+    O -->|orden.creada| R{RabbitMQ<br/>ecommerce.events}
+    R -->|orden.creada| C
+    C -->|stock.descontado| R
+    C -->|stock.insuficiente| R
+    R -->|eventos de stock| O
+    R -->|eventos de stock| N
