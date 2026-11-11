@@ -1,117 +1,101 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Encabezado from '../components/layout/Encabezado.jsx';
-import { useAuth } from '../context/AuthContext';
+import ChipsCategorias from '../components/catalogo/ChipsCategorias.jsx';
+import IconoCategoria from '../components/catalogo/IconoCategoria.jsx';
+import { useCarrito } from '../context/CarritoContext';
 import { catalogoService } from '../services/catalogoService';
-import { carritoService } from '../services/carritoService';
-import { ordenesService } from '../services/ordenesService';
+import { textoError } from '../utils/errores';
+import TarjetaProducto from '../components/products/TarjetaProducto.jsx';
 
-const money = (value) => `$${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-// Muestra el error real del servidor (o el de red) en lugar de un texto genérico
-const textoError = (error, porDefecto) => {
-  const data = error.response?.data;
-  const mensaje = typeof data === 'string' ? (data.trim().startsWith('<') ? '' : data) : data?.error || data?.message;
-  return mensaje || error.message || porDefecto;
+// Mensaje de estado vacío según los filtros activos
+const mensajeVacio = (categoria, busqueda) => {
+  if (busqueda && categoria) return 'No hay productos que coincidan con tu búsqueda en esta categoría.';
+  if (categoria) return 'No hay productos en esta categoría.';
+  if (busqueda) return `No encontramos productos para «${busqueda}».`;
+  return 'Aún no hay productos disponibles.';
 };
 
 export default function HomePage() {
-  const { usuario } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const categoria = searchParams.get('categoria') || '';
+  const { cantidadTotal, error, setError, agregar } = useCarrito();
+  const [categorias, setCategorias] = useState([]);
   const [productos, setProductos] = useState([]);
-  const [items, setItems] = useState([]); // [{ productoId, cantidad }] guardado en ms-carrito
-  const [query, setQuery] = useState('');
-  const [promo, setPromo] = useState('');
-  const [message, setMessage] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [query, setQuery] = useState(searchParams.get('q') || '');
+  const [busqueda, setBusqueda] = useState('');
   const [cargando, setCargando] = useState(true);
 
+  // La búsqueda espera un momento antes de consultar al servidor
   useEffect(() => {
-    Promise.all([catalogoService.listar(), carritoService.obtener(usuario.id)])
-      .then(([lista, carrito]) => { setProductos(lista); setItems(carrito.items); })
-      .catch((error) => setMessage({ type: 'error', text: textoError(error, 'No se pudo cargar la tienda. Verifica ms-catalogo, ms-carrito y el Gateway.') }))
-      .finally(() => setCargando(false));
-  }, [usuario.id]);
+    const timer = setTimeout(() => setBusqueda(query.trim()), 300);
+    return () => clearTimeout(timer);
+  }, [query]);
+  useEffect(() => { setQuery(searchParams.get('q') || ''); }, [searchParams]);
 
-  const visibleProducts = useMemo(() => productos.filter((p) => p.nombre.toLowerCase().includes(query.toLowerCase())), [productos, query]);
-  const cart = items.map((i) => ({ ...productos.find((p) => p.id === i.productoId), cantidad: i.cantidad })).filter((i) => i.id);
+  useEffect(() => {
+    catalogoService.categorias().then(setCategorias).catch(() => setCategorias([]));
+  }, []);
 
-  const subtotal = cart.reduce((total, item) => total + item.precio * item.cantidad, 0);
-  const discount = promo.trim().toUpperCase() === 'SELL12' ? Math.round(subtotal * 12) / 100 : 0;
-  const total = subtotal - discount;
+  // Ignora respuestas viejas si el usuario cambia de filtro mientras se carga
+  useEffect(() => {
+    let vigente = true;
+    setCargando(true);
+    catalogoService.listar({ categoria, q: busqueda })
+      .then((lista) => { if (vigente) setProductos(lista); })
+      .catch((e) => { if (vigente) setError(textoError(e, 'No se pudo cargar la tienda. Verifica ms-catalogo y el Gateway.')); })
+      .finally(() => { if (vigente) setCargando(false); });
+    return () => { vigente = false; };
+  }, [categoria, busqueda]);
 
-  // Cada acción se guarda en ms-carrito y la pantalla se actualiza con su respuesta
-  const actualizar = (peticion) => peticion
-    .then((carrito) => setItems(carrito.items))
-    .catch((error) => setMessage({ type: 'error', text: textoError(error, 'No se pudo actualizar el carrito.') }));
-  const addToCart = (producto) => actualizar(carritoService.agregar(usuario.id, producto.id, 1));
-  const changeQuantity = (item, cantidad) => actualizar(cantidad > 0
-    ? carritoService.cambiar(usuario.id, item.id, cantidad)
-    : carritoService.quitar(usuario.id, item.id));
-  const clearCart = () => carritoService.vaciar(usuario.id).then(() => setItems([]))
-    .catch((error) => setMessage({ type: 'error', text: textoError(error, 'No se pudo vaciar el carrito.') }));
-
-  const createOrder = async () => {
-    if (!cart.length) {
-      setMessage({ type: 'error', text: 'Agrega al menos un producto al carrito.' });
-      return;
-    }
-    setSubmitting(true);
-    setMessage(null);
-    try {
-      await ordenesService.crear({
-        userId: usuario.id,
-        items: cart.map(({ id, cantidad, precio }) => ({ productId: id, quantity: cantidad, precioEsperado: precio })),
-      });
-    } catch (error) {
-      setMessage({ type: 'error', text: textoError(error, 'No se pudo crear la orden. Verifica ms-ordenes y ms-catalogo.') });
-      setSubmitting(false);
-      return;
-    }
-    try {
-      await carritoService.vaciar(usuario.id);
-      setItems([]);
-      setMessage({ type: 'success', text: 'Orden creada correctamente.' });
-    } catch (error) {
-      // La orden ya existe: solo falló el vaciado del carrito
-      setMessage({ type: 'error', text: 'Orden creada, pero no se pudo vaciar el carrito: ' + textoError(error, 'revisa ms-carrito') });
-    }
-    setSubmitting(false);
-  };
+  const elegirCategoria = (slug) => setSearchParams(slug ? { categoria: slug } : {});
+  const categoriaActiva = categorias.find((c) => c.slug === categoria);
+  const total = categorias.reduce((suma, c) => suma + c.cantidadProductos, 0);
 
   return (
     <div className="shop-shell">
       <Encabezado />
 
-      <div className="shop-content">
+      <div className="shop-content una-columna">
         <section className="products-column" id="products">
           <div className="section-heading">
-            <h1>Productos</h1>
+            <div>
+              <h1 className="titulo-categoria">
+                {categoriaActiva && <IconoCategoria clave={categoriaActiva.icono} className="icono-titulo" />}
+                {categoriaActiva ? categoriaActiva.nombre : 'Productos'}
+              </h1>
+              {categoriaActiva && <p className="subtitulo">{categoriaActiva.descripcion}</p>}
+            </div>
             <div className="heading-actions">
-              <label className="search-box">⌕<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar..." /></label>
-              <button className="create-button" onClick={() => document.getElementById('cart')?.scrollIntoView({ behavior: 'smooth' })}>＋ Crear orden</button>
+              <label className="search-box">
+                <span aria-hidden="true">⌕</span>
+                <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar productos" aria-label="Buscar productos" />
+              </label>
+              <button className="create-button" onClick={() => navigate('/carrito')}>Ver carrito ({cantidadTotal})</button>
             </div>
           </div>
+
+          <ChipsCategorias categorias={categorias} activa={categoria} total={total} onElegir={elegirCategoria} />
+
+          {error && <p className="order-message error">{error}</p>}
           {cargando && <p className="empty-cart">Cargando productos...</p>}
-          {!cargando && !visibleProducts.length && <p className="empty-cart">No hay productos para mostrar.</p>}
+
+          {!cargando && !productos.length && (
+            <div className="estado-vacio">
+              <h2>{mensajeVacio(categoria, busqueda)}</h2>
+              {(categoria || busqueda) && (
+                <button className="boton-naranja" onClick={() => { setQuery(''); elegirCategoria(''); }}>Ver todos los productos</button>
+              )}
+            </div>
+          )}
+
           <div className="product-grid">
-            {visibleProducts.map((product) => <article className="product-card" key={product.id}>
-              <div className="product-image">{product.imagen && <img src={product.imagen} alt={product.nombre} />}</div>
-              <h2>{product.nombre}</h2>
-              <div className="product-footer"><div><strong>{money(product.precio)}</strong></div><button className="add-button" onClick={() => addToCart(product)} disabled={product.stock < 1} aria-label={`Agregar ${product.nombre}`}>↗</button></div>
-            </article>)}
+            {!cargando && productos.map((product) => (
+              <TarjetaProducto key={product.id} producto={product} onAgregar={agregar} />
+            ))}
           </div>
         </section>
-
-        <aside className="cart-panel" id="cart">
-          <div className="cart-title"><h1>Carrito</h1><button onClick={clearCart}>Vaciar</button></div>
-          <div className="cart-items">
-            {cart.length ? cart.map((item) => <div className="cart-item" key={item.id}>
-              <span className="selected">✓</span><img src={item.imagen} alt="" /><div className="cart-item-info"><strong>{item.nombre}</strong><small>{item.sku}</small><div className="quantity"><button onClick={() => changeQuantity(item, item.cantidad - 1)}>−</button><span>{item.cantidad}</span><button onClick={() => changeQuantity(item, item.cantidad + 1)}>＋</button></div></div><button className="remove-item" onClick={() => changeQuantity(item, 0)} aria-label={`Eliminar ${item.nombre}`}>♧</button><b>{money(item.precio * item.cantidad)}</b>
-            </div>) : <p className="empty-cart">Tu carrito está vacío.</p>}
-          </div>
-          <div className="promo"><span>◉ &nbsp; Promo para todos (12%)</span><input value={promo} onChange={(event) => setPromo(event.target.value)} placeholder="SELL12" /><button onClick={() => setPromo('SELL12')}>Aplicar</button></div>
-          <div className="summary"><div><span>Total productos</span><b>{money(subtotal)}</b></div><div><span>Descuento</span><b className="discount">−{money(discount)}</b></div><div className="total-row"><span>Total a pagar</span><b>{money(total)}</b></div></div>
-          {message && <p className={`order-message ${message.type}`}>{message.text}</p>}
-          <button className="payment-button" onClick={createOrder} disabled={submitting}>{submitting ? 'Creando orden...' : 'Proceder al pago'}</button>
-        </aside>
       </div>
     </div>
   );
