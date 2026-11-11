@@ -13,3 +13,4 @@ infrastructure/seed/imagenes/
 .vscode/
 *.log
 __pycache__/
+**/uploads/
