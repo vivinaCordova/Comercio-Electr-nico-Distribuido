@@ -3,6 +3,7 @@ package com.ecommerce.catalogo.controller;
 import com.ecommerce.catalogo.dto.PageResponse;
 import com.ecommerce.catalogo.dto.ProductoCreateRequest;
 import com.ecommerce.catalogo.dto.ProductoResponse;
+import com.ecommerce.catalogo.dto.ProductoDetalleResponse;
 import com.ecommerce.catalogo.dto.ProductoUpdateRequest;
 import com.ecommerce.catalogo.service.ProductoService;
 import jakarta.validation.Valid;
@@ -54,8 +55,10 @@ public class ProductoController {
             @RequestParam(name = "pagina", defaultValue = "0") int pagina,
             @RequestParam(name = "tamanio", defaultValue = "20") int tamanio,
             @RequestParam(name = "ordenarPor", defaultValue = "id") String ordenarPor,
-            @RequestParam(name = "direccion", defaultValue = "asc") String direccion) {
-        return productoService.listarActivos(pagina, tamanio, ordenarPor, direccion);
+            @RequestParam(name = "direccion", defaultValue = "asc") String direccion,
+            @RequestParam(name = "categoria", required = false) String categoria,
+            @RequestParam(name = "q", required = false) String q) {
+        return productoService.listarActivos(pagina, tamanio, ordenarPor, direccion, categoria, q);
     }
 
     @GetMapping("/buscar")
@@ -69,8 +72,13 @@ public class ProductoController {
     }
 
     @GetMapping("/{id}")
-    public ProductoResponse obtener(@PathVariable("id") Long id) {
-        return productoService.obtenerPorId(id);
+    public ProductoDetalleResponse obtener(@PathVariable("id") Long id) {
+        return productoService.obtenerDetalle(id);
+    }
+
+    @GetMapping("/{id}/detalle")
+    public ProductoDetalleResponse detalle(@PathVariable("id") Long id) {
+        return productoService.obtenerDetalle(id);
     }
 
     @PutMapping("/{id}")
