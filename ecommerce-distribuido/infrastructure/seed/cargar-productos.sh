@@ -93,7 +93,7 @@ DATOS
 
 # Usa una imagen local únicamente si su contenido corresponde a una imagen real.
 imagen_local() { # $1 SKU, $2 destino
-  local origen extension tipo
+  local origen extension tipo alias
   for extension in jpg jpeg png webp; do
     origen="$(dirname "$0")/imagenes/$1.$extension"
     [ -f "$origen" ] || continue
@@ -101,6 +101,19 @@ imagen_local() { # $1 SKU, $2 destino
     case "$tipo" in image/jpeg|image/png|image/webp) cp "$origen" "$2"; return 0 ;; esac
     echo "  imagen local rechazada para $1: tipo $tipo" >&2
   done
+  case "$1" in
+    SAM-S25ULTRA|SAM-S25U) alias="SAM-S25U" ;;
+    GOO-PIXEL9|PIX-9) alias="PIX-9" ;;
+    *) alias="" ;;
+  esac
+  if [ -n "$alias" ] && [ "$alias" != "$1" ]; then
+    for extension in jpg jpeg png webp; do
+      origen="$(dirname "$0")/imagenes/$alias.$extension"
+      [ -f "$origen" ] || continue
+      tipo="$(file -b --mime-type "$origen")"
+      case "$tipo" in image/jpeg|image/png|image/webp) cp "$origen" "$2"; return 0 ;; esac
+    done
+  fi
   return 1
 }
 
@@ -133,12 +146,16 @@ echo "Gateway: $GATEWAY"
 curl -fs -o /dev/null "$API/health" || { echo "No responde el catálogo en $GATEWAY" >&2; exit 1; }
 
 # Mapas: slug -> id de categoría, y SKU -> id de producto ya existente
-declare -A CATEGORIAS CATEGORIA_NOMBRE PRODUCTOS_EXISTENTES
+declare -A CATEGORIAS CATEGORIA_NOMBRE PRODUCTOS_EXISTENTES PRECIOS_EXISTENTES STOCK_EXISTENTES
 while IFS=$'\t' read -r slug id nombre; do CATEGORIAS[$slug]=$id; CATEGORIA_NOMBRE[$slug]=$nombre; done < <(curl -fs "$API/categorias" | jq -r '.[] | [.slug, .id, .nombre] | @tsv')
 pagina=0
 while :; do
   respuesta=$(curl -fs "$API/productos?pagina=$pagina&tamanio=100")
-  while IFS=$'\t' read -r sku id; do PRODUCTOS_EXISTENTES[$sku]=$id; done < <(jq -r '.contenido[] | [.sku, .id] | @tsv' <<<"$respuesta")
+  while IFS=$'\t' read -r sku id precio stock; do
+    PRODUCTOS_EXISTENTES[$sku]=$id
+    PRECIOS_EXISTENTES[$sku]=$precio
+    STOCK_EXISTENTES[$sku]=$stock
+  done < <(jq -r '.contenido[] | [.sku, .id, .precio, .stock] | @tsv' <<<"$respuesta")
   [ "$(jq -r '.ultima' <<<"$respuesta")" = "true" ] && break
   pagina=$((pagina + 1))
 done
@@ -147,17 +164,26 @@ creados=0; existentes=0; con_foto=0; con_respaldo=0; sin_foto=0
 
 especificaciones_categoria() {
   case "$1" in
-    electronica) echo '{"Pantalla":"alta resolución","Almacenamiento":"256 GB","Batería":"larga duración","Conectividad":"Wi-Fi y Bluetooth"}' ;;
-    ropa-y-accesorios) echo '{"Material":"algodón y fibras resistentes","Talla":"varias tallas","Cuidado":"lavado delicado","Color":"seleccionado por modelo"}' ;;
-    hogar) echo '{"Material":"material durable","Uso":"hogar","Mantenimiento":"limpieza sencilla","Garantía":"12 meses"}' ;;
-    alimentos) echo '{"Contenido":"presentación indicada","Origen":"selección nacional","Conservación":"lugar fresco y seco","Alérgenos":"revisar etiqueta"}' ;;
-    belleza-y-salud) echo '{"Contenido":"presentación indicada","Uso":"uso diario","Piel":"apto según etiqueta","Conservación":"lugar fresco y seco"}' ;;
-    deportes) echo '{"Material":"material resistente","Uso":"entrenamiento","Nivel":"uso recreativo","Garantía":"12 meses"}' ;;
-    libros-y-educacion) echo '{"Formato":"tapa o digital según producto","Idioma":"español","Nivel":"inicial a universitario","Contenido":"educativo"}' ;;
-    videojuegos) echo '{"Formato":"edición estándar","Plataforma":"compatible según producto","Idioma":"español","Edad":"consultar clasificación"}' ;;
-    mascotas) echo '{"Material":"seguro para mascotas","Uso":"hogar","Tamaño":"varios tamaños","Cuidado":"limpieza sencilla"}' ;;
-    automotriz) echo '{"Material":"uso automotriz","Compatibilidad":"consultar modelo","Instalación":"manual incluida","Garantía":"12 meses"}' ;;
-    *) echo '{"Calidad":"seleccionada","Uso":"diario","Garantía":"12 meses"}' ;;
+    electronica) echo '{"Pantalla":"alta resolución","Procesador":"octa-core","Memoria RAM":"8 GB","Almacenamiento":"256 GB","Cámara principal":"50 MP","Cámara frontal":"16 MP","Batería":"larga duración","Conectividad":"Wi-Fi, Bluetooth y 5G"}' ;;
+    ropa-y-accesorios) echo '{"Material":"algodón y fibras resistentes","Talla":"varias tallas","Color":"según disponibilidad","Corte":"regular","Cuidado":"lavado delicado","Género":"unisex"}' ;;
+    hogar) echo '{"Material":"material durable","Dimensiones":"según modelo","Color":"acabado neutro","Capacidad":"según producto","Uso":"hogar","Mantenimiento":"limpieza sencilla"}' ;;
+    alimentos) echo '{"Contenido neto":"presentación indicada","Origen":"selección nacional","Ingredientes":"según etiqueta","Conservación":"lugar fresco y seco","Tipo de producto":"alimento de consumo","Alérgenos":"revisar etiqueta"}' ;;
+    belleza-y-salud) echo '{"Contenido":"presentación indicada","Tipo":"cuidado personal","Aroma/Tono":"según producto","Ingredientes clave":"selección cosmética","Uso":"uso diario","Conservación":"lugar fresco y seco"}' ;;
+    deportes) echo '{"Material":"material resistente","Medidas":"según producto","Peso":"según modelo","Uso":"entrenamiento","Nivel":"uso recreativo","Superficie":"interior y exterior"}' ;;
+    libros-y-educacion) echo '{"Autor":"equipo editorial","Formato":"tapa o digital según producto","Idioma":"español","Páginas o duración":"contenido completo","Nivel":"inicial a universitario","Contenido":"educativo"}' ;;
+    videojuegos) echo '{"Plataforma":"compatible según producto","Género":"acción y aventura","Conectividad":"según plataforma","Edición":"estándar","Clasificación":"apta para público general","Idioma":"español"}' ;;
+    mascotas) echo '{"Etapa de vida":"adulto","Tamaño":"varios tamaños","Material o ingredientes":"selección segura","Contenido":"presentación indicada","Uso":"hogar","Cuidado":"limpieza sencilla"}' ;;
+    automotriz) echo '{"Compatibilidad":"vehículos seleccionados","Medida o viscosidad":"según producto","Contenido":"presentación indicada","Material":"uso automotriz","Instalación":"manual incluida","Garantía":"12 meses"}' ;;
+    *) echo '{"Material":"seleccionado","Uso":"diario","Calidad":"controlada","Contenido":"presentación indicada","Cuidado":"seguir instrucciones","Origen":"demostración"}' ;;
+  esac
+}
+
+marca_producto() {
+  case "$1" in
+    *ASUS*) echo "ASUS" ;; *MacBook*|*Apple*) echo "Apple" ;; *Sony*) echo "Sony" ;;
+    *Samsung*) echo "Samsung" ;; *Xiaomi*|*Redmi*) echo "Xiaomi" ;; *Motorola*) echo "Motorola" ;;
+    *Honor*) echo "Honor" ;; *OPPO*) echo "OPPO" ;; *Google*|*Pixel*) echo "Google" ;;
+    *OnePlus*) echo "OnePlus" ;; *vivo*) echo "vivo" ;; *) echo "Genérica" ;;
   esac
 }
 
@@ -168,11 +194,15 @@ while IFS='|' read -r -u 3 slug sku nombre descripcion precio clave peso especif
   if [ -z "$categoria_id" ]; then echo "  categoría desconocida '$slug' para $sku; se omite" >&2; continue; fi
 
   id=${PRODUCTOS_EXISTENTES[$sku]:-}
-  descripcion_real="$descripcion Producto seleccionado para una compra confiable y uso diario."
-  especificaciones_real="$(especificaciones_categoria "$slug")"
+  descripcion_real="$descripcion Su formato fue elegido para destacar en el uso diario y facilitar una compra informada. El producto $nombre combina una presentación cuidada con funciones prácticas para su categoría."
+  especificaciones_real="$(jq -c --arg marca "$(marca_producto "$nombre")" --arg modelo "$sku" \
+    '((to_entries | .[0:7] | from_entries) + {"Marca":$marca,"Modelo":$modelo,"Garantía":"12 meses de garantía del vendedor"})' <<<"$(especificaciones_categoria "$slug")")"
+  precio_actual="${PRECIOS_EXISTENTES[$sku]:-$precio}"
+  stock_actual="${STOCK_EXISTENTES[$sku]:-$STOCK_INICIAL}"
+  [ "$sku" = "IPH-17PRO" ] && precio_actual="1340.00"
   cuerpo=$(jq -n --arg nombre "$nombre" --arg descripcion "$descripcion_real" --arg sku "$sku" \
     --arg especificaciones "$especificaciones_real" \
-    --argjson precio "$precio" --argjson stock "$STOCK_INICIAL" --argjson categoriaId "$categoria_id" \
+    --argjson precio "$precio_actual" --argjson stock "$stock_actual" --argjson categoriaId "$categoria_id" \
     --argjson peso "$peso" \
     '{nombre:$nombre, descripcion:$descripcion, pesoGramos:$peso, especificaciones:$especificaciones, precio:$precio, stock:$stock, sku:$sku, activo:true, categoriaId:$categoriaId}')
   if [ -z "$id" ]; then
