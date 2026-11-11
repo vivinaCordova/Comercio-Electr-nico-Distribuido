@@ -2,9 +2,12 @@ package com.ecommerce.catalogo.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -37,6 +40,13 @@ public class Producto {
     @Column(length = 1000)
     private String descripcion;
 
+    @Min(1)
+    @Column(name = "peso_gramos")
+    private Integer pesoGramos;
+
+    @Column(columnDefinition = "TEXT")
+    private String especificaciones;
+
     @NotNull
     @DecimalMin(value = "0.00", inclusive = false)
     @Digits(integer = 10, fraction = 2)
@@ -56,6 +66,10 @@ public class Producto {
     @NotNull
     @Column(nullable = false)
     private Boolean activo = true;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "categoria_id")
+    private Categoria categoria;
 
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
@@ -101,6 +115,22 @@ public class Producto {
         this.descripcion = descripcion;
     }
 
+    public Integer getPesoGramos() {
+        return pesoGramos;
+    }
+
+    public void setPesoGramos(Integer pesoGramos) {
+        this.pesoGramos = pesoGramos;
+    }
+
+    public String getEspecificaciones() {
+        return especificaciones;
+    }
+
+    public void setEspecificaciones(String especificaciones) {
+        this.especificaciones = especificaciones;
+    }
+
     public BigDecimal getPrecio() {
         return precio;
     }
@@ -131,6 +161,14 @@ public class Producto {
 
     public void setActivo(Boolean activo) {
         this.activo = activo;
+    }
+
+    public Categoria getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(Categoria categoria) {
+        this.categoria = categoria;
     }
 
     public LocalDateTime getFechaCreacion() {

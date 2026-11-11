@@ -7,5 +7,10 @@ import java.util.List;
 
 public record CrearOrdenRequest(
         @NotNull Long userId,
-        @NotEmpty List<@Valid OrdenItemRequest> items) {
+        @NotEmpty List<@Valid OrdenItemRequest> items,
+        String promo) {
+
+    public CrearOrdenRequest(Long userId, List<OrdenItemRequest> items) {
+        this(userId, items, null);
+    }
 }

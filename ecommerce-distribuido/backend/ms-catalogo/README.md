@@ -8,4 +8,7 @@ Desde esta carpeta: `mvn spring-boot:run`.
 
 Configuracion: `src/main/resources/application.yml`; variables de entorno definidas en el README raiz.
 
+El detalle completo de un producto (categoría, imágenes y especificaciones) está disponible en
+`GET /api/catalogo/productos/{id}/detalle`.
+
 La funcionalidad es inicial y no constituye un sistema comercial completo.
