@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-labelledby="title">
+  <title>Imagen de producto no disponible</title>
+  <rect width="640" height="480" rx="32" fill="#fff3e5"/>
+  <circle cx="320" cy="210" r="88" fill="#ffd7ad"/>
+  <path d="M253 320h134l-18-54h-98z" fill="#f47e16"/>
+  <path d="M229 350h182v18H229z" fill="#c24e00"/>
+  <circle cx="286" cy="204" r="12" fill="#c24e00"/>
+  <circle cx="354" cy="204" r="12" fill="#c24e00"/>
+  <path d="M285 245c20 17 50 17 70 0" fill="none" stroke="#c24e00" stroke-linecap="round" stroke-width="9"/>
+</svg>
