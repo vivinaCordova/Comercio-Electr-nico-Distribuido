@@ -10,10 +10,8 @@ sequenceDiagram
     F->>G: POST /ordenes
     G->>O: Reenvía la solicitud
     loop Cada producto
-        O->>G: POST validar
-        G->>C: POST /api/catalogo/productos/{id}/validar
-        C-->>G: Precio y disponibilidad
-        G-->>O: Resultado de validación
+        O->>C: POST /api/catalogo/productos/{id}/validar (REST directo)
+        C-->>O: Precio y disponibilidad
     end
     O->>R: orden.creada
     R->>C: Entrega orden.creada
