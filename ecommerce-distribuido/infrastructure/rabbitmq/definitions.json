@@ -34,6 +34,13 @@
       "durable": true,
       "auto_delete": false,
       "arguments": {}
+    },
+    {
+      "name": "notificaciones.orden-creada",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
     }
   ],
   "bindings": [
@@ -75,6 +82,14 @@
       "destination": "notificaciones.stock-eventos",
       "destination_type": "queue",
       "routing_key": "stock.insuficiente",
+      "arguments": {}
+    },
+    {
+      "source": "ecommerce.events",
+      "vhost": "/",
+      "destination": "notificaciones.orden-creada",
+      "destination_type": "queue",
+      "routing_key": "orden.creada",
       "arguments": {}
     }
   ]
