@@ -1,0 +1,13 @@
+.git
+.idea
+.vscode
+.env
+.env.*
+*.log
+*.pid
+target
+uploads
+Dockerfile*
+compose*.yaml
+compose*.yml
+docker-compose*.yml

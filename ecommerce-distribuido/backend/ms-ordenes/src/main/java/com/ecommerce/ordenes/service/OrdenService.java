@@ -32,7 +32,7 @@ public class OrdenService {
                     new CatalogoValidationRequest(item.precioEsperado(), item.cantidad(), true));
             if (!validation.valido() || validation.precio() == null
                     || validation.precio().compareTo(item.precioEsperado()) != 0) {
-                throw new OrdenValidationException("Producto o precio inválido: " + item.productoId());
+                throw new OrdenValidationException(motivo(validation, item));
             }
             total = total.add(validation.precio().multiply(BigDecimal.valueOf(item.cantidad())));
             orden.agregarItem(new OrdenItem(item.productoId(), item.cantidad(), validation.precio()));
@@ -40,7 +40,7 @@ public class OrdenService {
         orden.actualizarTotal(total);
         orden = repository.save(orden);
         eventPublisher.publicar("orden.creada",
-                new EventMessage("orden.creada", orden.getId().toString(), orden.getUserId(), orden.getTotal(), Instant.now()));
+                new EventMessage("orden.creada", orden.getId().toString(), orden.getUserId(), orden.getTotal(), Instant.now(), orden.getItems().stream().map(i -> new EventMessage.Item(i.getProductoId(), i.getCantidad())).toList()));
         return OrdenResponse.from(orden);
     }
 
@@ -49,5 +49,12 @@ public class OrdenService {
         Orden orden = repository.findById(ordenId)
                 .orElseThrow(() -> new OrdenValidationException("Orden no encontrada: " + ordenId));
         orden.cambiarEstado(estado);
+    }
+
+    // Usa el detalle que devuelve ms-catalogo (p. ej. "Stock insuficiente") en vez de un mensaje genérico
+    private String motivo(CatalogoValidationResponse validation, OrdenItemRequest item) {
+        String detalle = validation.detalle() == null || validation.detalle().isBlank()
+                ? "Precio inválido" : validation.detalle();
+        return detalle + " (producto " + item.productoId() + ")";
     }
 }

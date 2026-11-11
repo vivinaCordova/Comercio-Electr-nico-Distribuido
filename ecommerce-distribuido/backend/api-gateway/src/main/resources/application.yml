@@ -17,10 +17,13 @@ spring:
           predicates: [Path=/api/catalogo/**]
         - id: ordenes
           uri: ${ORDENES_URL:http://localhost:8082}
-          predicates: [Path=/ordenes/**, /api/ordenes/**]
+          predicates: ["Path=/ordenes/**,/api/ordenes/**"]
         - id: carrito
           uri: ${CARRITO_URL:http://localhost:8083}
           predicates: [Path=/api/carrito/**]
+        - id: usuarios
+          uri: ${USUARIOS_URL:http://localhost:8085}
+          predicates: [Path=/api/usuarios/**]
         - id: notificaciones
           uri: ${NOTIFICACIONES_URL:http://localhost:8084}
           predicates: [Path=/api/notificaciones/**]
