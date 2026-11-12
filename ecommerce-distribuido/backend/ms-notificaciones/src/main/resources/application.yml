@@ -4,7 +4,7 @@ spring:
   application:
     name: ms-notificaciones
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:5432/notificaciones_db
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/notificaciones_db
     username: ${POSTGRES_USER:ecommerce}
     password: ${POSTGRES_PASSWORD:change_me_local_only}
   jpa:
@@ -12,15 +12,15 @@ spring:
       ddl-auto: none
     open-in-view: false
   flyway:
-    enabled: false
+    enabled: true
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
-    port: 5672
+    port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USER:ecommerce}
     password: ${RABBITMQ_PASSWORD:change_me_rabbit}
   mail:
     host: ${SMTP_HOST:localhost}
-    port: 1025
+    port: ${SMTP_PORT:1025}
     properties:
       mail.smtp.auth: false
       mail.smtp.starttls.enable: false

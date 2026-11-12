@@ -23,6 +23,7 @@ public class EventConsumer {
     public void recibir(OrdenCreada orden) {
         boolean ok = stock.descontar(orden.items());
         String tipo = ok ? "stock.descontado" : "stock.insuficiente";
-        publisher.publicar(tipo, new EventMessage(tipo, orden.ordenId(), ok ? "Stock descontado" : "Stock insuficiente", Instant.now()));
+        publisher.publicar(tipo, new EventMessage(tipo, orden.ordenId(), orden.userId(),
+                ok ? "Stock descontado" : "Stock insuficiente", Instant.now()));
     }
 }

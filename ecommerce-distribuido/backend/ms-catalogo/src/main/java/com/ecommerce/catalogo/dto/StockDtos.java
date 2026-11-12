@@ -15,5 +15,5 @@ public final class StockDtos {
     // Lo que Órdenes publica en el evento orden.creada
     public record ItemOrden(Long productoId, Integer cantidad) { }
 
-    public record OrdenCreada(String ordenId, List<ItemOrden> items) { }
+    public record OrdenCreada(String ordenId, Long userId, List<ItemOrden> items) { }
 }

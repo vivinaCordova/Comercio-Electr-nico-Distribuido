@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import Marca from './Marca.jsx';
 import { useAuth } from '../../context/AuthContext';
 import { useCarrito } from '../../context/CarritoContext';
+import CampanaNotificaciones from '../notificaciones/CampanaNotificaciones.jsx';
 
 const ENLACES = [['/productos', '◈', 'Productos'], ['/ordenes', '♧', 'Mis órdenes'], ['/carrito', '🛒', 'Carrito']];
 
@@ -29,7 +30,9 @@ export default function Encabezado() {
         <button type="submit" aria-label="Buscar">⌕</button>
       </form>
       <div className="profile-actions">
+        {usuario?.id && <CampanaNotificaciones key={usuario.id} usuarioId={usuario.id} />}
         <span className="avatar" title={usuario?.email}>{(usuario?.nombre || '?')[0].toUpperCase()}</span>
+        <div className="profile-copy"><strong>{usuario?.nombre}</strong><small>{usuario?.email}</small></div>
         <button className="salir" onClick={cerrar}>Salir</button>
       </div>
     </header>
