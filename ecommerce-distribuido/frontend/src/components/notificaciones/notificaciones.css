@@ -1,0 +1,34 @@
+.avisos { position: relative; }
+.profile-actions .avisos button { width: auto; height: auto; border: 0; border-radius: 8px; background: transparent; }
+.profile-actions .avisos .avisos-disparador { position: relative; display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid #ececec; border-radius: 50%; color: #49433e; background: #fafafa; }
+.avisos-disparador:hover, .avisos-disparador[aria-expanded="true"] { box-shadow: 0 0 0 3px #fff3e9; }
+.avisos-contador { position: absolute; right: -6px; top: -5px; min-width: 19px; padding: 2px 5px; border: 2px solid #fff; border-radius: 20px; color: #fff; background: #c64d00; font-size: 10px; font-weight: 700; }
+.avisos-panel { position: absolute; top: 47px; right: 0; z-index: 40; display: flex; flex-direction: column; width: min(410px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); padding: 16px 15px 12px; color: #292929; background: #fff; border: 1px solid #ededed; border-radius: 18px; box-shadow: 0 16px 42px #00000016; overflow: hidden; }
+.avisos-cabecera { display: flex; flex-shrink: 0; align-items: center; justify-content: space-between; gap: 12px; padding: 0 0 13px; border-bottom: 1px solid #eee; }
+.avisos-cabecera h2 { margin: 0; font-size: 14px; font-weight: 700; }
+.avisos-cabecera h2:focus { outline: none; }
+.profile-actions .avisos-cabecera button { padding: 3px 0; color: #b85d18; font-size: 11px; text-align: right; line-height: 1.5; }
+.profile-actions .avisos-cabecera button:hover:not(:disabled) { text-decoration: underline; }
+.profile-actions .avisos button:disabled { cursor: default; }
+.profile-actions .avisos-cabecera button:disabled { color: #aaa; }
+.avisos-contenido { min-height: 0; max-height: 360px; overflow-y: auto; overscroll-behavior: contain; }
+.avisos-lista { list-style: none; margin: 0; padding: 6px 0 0; }
+.aviso-item { margin: 3px 0; }
+.aviso-texto, .profile-actions .avisos .aviso-texto { position: relative; display: grid; gap: 4px; width: 100%; padding: 13px 16px 13px 10px; border-radius: 9px; text-align: left; overflow-wrap: anywhere; }
+.aviso-texto strong { color: #292929; font-size: 12px; font-weight: 600; line-height: 1.5; }
+.aviso-mensaje { color: #666; font-size: 12px; line-height: 1.55; }
+.aviso-texto time { color: #999; font-size: 10px; line-height: 1.5; }
+.profile-actions .avisos button.aviso-texto:hover:not(:disabled) { background: #fff8f1; }
+.aviso-punto { position: absolute; right: 3px; top: 20px; width: 5px; height: 5px; border-radius: 50%; background: #e18a48; }
+.avisos-vacio { display: grid; gap: 6px; margin: 0; padding: 28px 12px; text-align: center; font-size: 12px; color: #888; }
+.avisos-vacio strong { color: #555; font-size: 12px; font-weight: 500; }
+.avisos-vacio p { margin: 0; line-height: 1.6; }
+.avisos-error { flex-shrink: 0; padding: 12px 10px; color: #9c2c2c; font-size: 12px; }
+.avisos-error p { margin: 0 0 5px; overflow-wrap: anywhere; }
+.profile-actions .avisos-error button { padding: 3px 0; color: #9c2c2c; font-size: 11px; text-decoration: underline; }
+@media (max-width: 600px) {
+  .avisos-panel { position: fixed; top: 100px; left: 12px; right: 12px; width: auto; max-height: calc(100dvh - 112px); }
+  .avisos-cabecera { gap: 8px; }
+  .avisos-cabecera h2 { font-size: 13px; }
+  .profile-actions .avisos-cabecera button { font-size: 10px; }
+}

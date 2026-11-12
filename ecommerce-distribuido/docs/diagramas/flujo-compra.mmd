@@ -1,0 +1,29 @@
+sequenceDiagram
+    participant U as Usuario
+    participant F as Frontend
+    participant G as Gateway
+    participant O as Órdenes
+    participant C as Catálogo
+    participant R as RabbitMQ
+
+    U->>F: Inicia sesión y arma carrito
+    F->>G: POST /ordenes
+    G->>O: Reenvía la solicitud
+    loop Cada producto
+        O->>C: POST /api/catalogo/productos/{id}/validar (REST directo)
+        C-->>O: Precio y disponibilidad
+    end
+    O->>R: orden.creada
+    R->>C: Entrega orden.creada
+    alt Stock suficiente
+        C->>C: Descuenta todo-o-nada
+        C->>R: stock.descontado
+        R->>O: Entrega evento
+        O-->>G: Orden CONFIRMADA
+    else Stock insuficiente
+        C->>R: stock.insuficiente
+        R->>O: Entrega evento con motivo
+        O-->>G: Orden CANCELADA
+    end
+    G-->>F: Resultado de la orden
+    F-->>U: Muestra factura y estado

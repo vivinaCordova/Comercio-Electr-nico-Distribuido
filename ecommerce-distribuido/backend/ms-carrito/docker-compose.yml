@@ -1,0 +1,29 @@
+services:
+  carrito-db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ecommerce
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?define POSTGRES_PASSWORD}
+      POSTGRES_DB: carrito_db
+    volumes:
+      - carrito_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ecommerce -d carrito_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  ms-carrito:
+    build: .
+    ports:
+      - "8083:8083"
+    environment:
+      DB_HOST: carrito-db
+      POSTGRES_USER: ecommerce
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?define POSTGRES_PASSWORD}
+    depends_on:
+      carrito-db:
+        condition: service_healthy
+
+volumes:
+  carrito_data:

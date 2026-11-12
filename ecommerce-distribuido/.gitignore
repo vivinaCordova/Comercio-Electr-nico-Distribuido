@@ -1,0 +1,16 @@
+# Secretos locales
+.env
+.env.*
+!.env.example
+# Java
+**/target/
+# Frontend
+**/node_modules/
+**/dist/
+infrastructure/seed/imagenes/
+# Herramientas
+.idea/
+.vscode/
+*.log
+__pycache__/
+**/uploads/
