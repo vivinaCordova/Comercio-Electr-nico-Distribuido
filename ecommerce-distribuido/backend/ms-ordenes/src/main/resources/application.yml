@@ -28,3 +28,14 @@ management:
     web:
       exposure:
         include: health,info
+logging:
+  file:
+    name: ${LOG_FILE:logs/ms-ordenes.log}
+  level:
+    root: INFO
+    com.ecommerce.ordenes: DEBUG
+    org.springframework.amqp: INFO
+    org.springframework.web.client.RestTemplate: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n"

@@ -7,6 +7,8 @@ import com.ecommerce.ordenes.messaging.EventPublisher;
 import com.ecommerce.ordenes.repository.OrdenRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
@@ -14,6 +16,7 @@ import java.util.List;
 
 @Service
 public class OrdenService {
+    private static final Logger log = LoggerFactory.getLogger(OrdenService.class);
     static final String PROMO_SELL12 = "SELL12";
     private static final BigDecimal TASA_SELL12 = new BigDecimal("0.12");
 
@@ -30,6 +33,7 @@ public class OrdenService {
 
     @Transactional
     public OrdenResponse crear(CrearOrdenRequest request) {
+        log.info("Creando orden para userId={}, items={}", request.userId(), request.items().size());
         BigDecimal subtotal = BigDecimal.ZERO;
         Orden orden = new Orden(request.userId(), EstadoOrden.PENDIENTE, BigDecimal.ZERO);
         for (OrdenItemRequest item : request.items()) {
@@ -37,6 +41,8 @@ public class OrdenService {
                     new CatalogoValidationRequest(item.precioEsperado(), item.cantidad(), true));
             if (!validation.valido() || validation.precio() == null
                     || validation.precio().compareTo(item.precioEsperado()) != 0) {
+                log.warn("Validacion rechazada para productoId={}, userId={}, detalle={}",
+                        item.productoId(), request.userId(), validation.detalle());
                 throw new OrdenValidationException(motivo(validation, item));
             }
             subtotal = subtotal.add(validation.precio().multiply(BigDecimal.valueOf(item.cantidad())));
@@ -47,6 +53,8 @@ public class OrdenService {
         BigDecimal total = subtotal.subtract(descuento);
         orden.fijarImportes(descuento, total);
         orden = repository.save(orden);
+        log.info("Orden persistida: ordenId={}, userId={}, total={}, estado={}",
+                orden.getId(), orden.getUserId(), orden.getTotal(), orden.getEstado());
         eventPublisher.publicar("orden.creada",
                 new EventMessage("orden.creada", orden.getId().toString(), orden.getUserId(), orden.getTotal(), Instant.now(), orden.getItems().stream().map(i -> new EventMessage.Item(i.getProductoId(), i.getCantidad())).toList()));
         return OrdenResponse.from(orden);
@@ -64,6 +72,7 @@ public class OrdenService {
         Orden orden = repository.findById(ordenId)
                 .orElseThrow(() -> new OrdenValidationException("Orden no encontrada: " + ordenId));
         orden.cambiarEstado(estado, motivo);
+        log.info("Estado actualizado: ordenId={}, estado={}, motivo={}", ordenId, estado, motivo);
     }
 
     // Usa el detalle que devuelve ms-catalogo (p. ej. "Stock insuficiente") en vez de un mensaje genérico
