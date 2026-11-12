@@ -2,12 +2,15 @@ package com.ecommerce.notificaciones.service;
 import com.ecommerce.notificaciones.entity.Notificacion;
 import com.ecommerce.notificaciones.messaging.EventMessage;
 import com.ecommerce.notificaciones.repository.NotificacionRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
 public class NotificacionService {
+    private static final Logger log = LoggerFactory.getLogger(NotificacionService.class);
     private final NotificacionRepository repository;
     private final List<PlantillaNotificacion> plantillas;
 
@@ -18,13 +21,19 @@ public class NotificacionService {
 
     @Transactional
     public void procesar(EventMessage evento) {
-        if (evento.userId() == null) {
-            throw new IllegalArgumentException("El evento no contiene userId: " + evento.tipo());
+        if (evento == null || evento.userId() == null) {
+            log.warn("Se descarta evento sin userId: {}", evento);
+            return;
         }
         PlantillaNotificacion plantilla = plantillas.stream()
                 .filter(p -> p.aplica(evento.tipo()))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Tipo de evento no soportado: " + evento.tipo()));
+                .orElse(null);
+        if (plantilla == null) {
+            log.warn("Se descarta evento de tipo no soportado: tipo={}, ordenId={}",
+                    evento.tipo(), evento.ordenId());
+            return;
+        }
         repository.save(new Notificacion(evento.userId(), evento.tipo(),
                 plantilla.titulo(evento), plantilla.mensaje(evento)));
     }
